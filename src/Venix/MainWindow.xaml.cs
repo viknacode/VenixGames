@@ -27,6 +27,7 @@ public partial class MainWindow : Window
     FrameworkElement? _current;
     readonly System.Windows.Threading.DispatcherTimer _searchDebounce = new() { Interval = TimeSpan.FromMilliseconds(150) };
     bool _clearingSearch;
+    bool _navigated;
 
     public MainWindow()
     {
@@ -59,6 +60,9 @@ public partial class MainWindow : Window
 
         Loaded += async (_, _) =>
         {
+            // Loaded fires again every time the window comes back from the tray (Hide/Show); navigate only once
+            if (_navigated) return;
+            _navigated = true;
             var args = Environment.GetCommandLineArgs();
             var i = Array.IndexOf(args, "--page");
             Go(i > 0 && i + 1 < args.Length ? args[i + 1] : store.Settings.StartOnLibrary ? "library" : "home");
@@ -407,6 +411,13 @@ public partial class MainWindow : Window
     void OnMin(object sender, RoutedEventArgs e) => WindowState = WindowState.Minimized;
     void OnMax(object sender, RoutedEventArgs e) => WindowState = WindowState == WindowState.Maximized ? WindowState.Normal : WindowState.Maximized;
     void OnClose(object sender, RoutedEventArgs e) => Close();
+
+    /// <summary>X button and Alt+F4: with an active download the window hides to the tray instead (see <see cref="TrayService"/>).</summary>
+    protected override void OnClosing(System.ComponentModel.CancelEventArgs e)
+    {
+        base.OnClosing(e);
+        if (!e.Cancel && Hub.Tray?.TryHideOnClose() == true) e.Cancel = true;
+    }
 
     [DllImport("dwmapi.dll")]
     static extern int DwmSetWindowAttribute(IntPtr hwnd, int attr, ref int value, int size);

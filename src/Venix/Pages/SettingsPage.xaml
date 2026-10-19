@@ -185,6 +185,14 @@
                     </Border>
                     <Border Style="{StaticResource Glass}" CornerRadius="26" Padding="28,24" Margin="0,18,0,0">
                         <StackPanel>
+                            <TextBlock Text="Bandeja do sistema" Style="{StaticResource T.H2}" />
+                            <TextBlock Style="{StaticResource T.Body}" Margin="0,4,0,16" Text="Com um download em andamento, fechar a janela não encerra o Venix: ele continua baixando pelo ícone ao lado do relógio. Clique no ícone para abrir de novo ou use &quot;Sair&quot; no menu dele para fechar de vez." />
+                            <CheckBox x:Name="CloseToTray" Style="{StaticResource Switch}" Content="Ao fechar com downloads ativos, manter na bandeja" Click="OnToggle" />
+                            <CheckBox x:Name="StartInTray" Style="{StaticResource Switch}" Content="Iniciar minimizado na bandeja" Click="OnToggle" Margin="0,12,0,0" />
+                        </StackPanel>
+                    </Border>
+                    <Border Style="{StaticResource Glass}" CornerRadius="26" Padding="28,24" Margin="0,18,0,0">
+                        <StackPanel>
                             <TextBlock Text="Trackers" Style="{StaticResource T.H2}" />
                             <TextBlock Style="{StaticResource T.Body}" Margin="0,4,0,16" Text="Muitos links das listas não trazem trackers e ficam parados em &quot;Obtendo metadados&quot;. Estes trackers públicos são adicionados a cada download para encontrar peers mais rápido." />
                             <CheckBox x:Name="AddTrackers" Style="{StaticResource Switch}" Content="Adicionar trackers públicos aos downloads" Click="OnTrackersToggle" />

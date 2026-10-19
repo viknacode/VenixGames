@@ -22,6 +22,8 @@ public partial class SettingsPage : UserControl, IPage
         DownloadDir.Text = s.DownloadDir;
         StartOnLibrary.IsChecked = s.StartOnLibrary;
         Seed.IsChecked = s.SeedAfterDownload;
+        CloseToTray.IsChecked = s.CloseToTray;
+        StartInTray.IsChecked = s.StartInTray;
         AddTrackers.IsChecked = s.AddPublicTrackers;
         TrackerList.Text = string.Join(Environment.NewLine, s.Trackers);
         SpeedLimit.Text = s.SpeedLimitMbps.ToString();
@@ -150,6 +152,8 @@ public partial class SettingsPage : UserControl, IPage
     {
         Hub.Store.Settings.StartOnLibrary = StartOnLibrary.IsChecked == true;
         Hub.Store.Settings.SeedAfterDownload = Seed.IsChecked == true;
+        Hub.Store.Settings.CloseToTray = CloseToTray.IsChecked == true;
+        Hub.Store.Settings.StartInTray = StartInTray.IsChecked == true;
         Hub.Store.SaveSoon();
     }
 

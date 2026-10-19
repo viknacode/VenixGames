@@ -17,6 +17,12 @@ public partial class App : Application
         ShutdownMode = ShutdownMode.OnExplicitShutdown;
         try
         {
+            // a Venix already running (possibly only in the tray) is brought back instead of a second copy
+            if (!SingleInstance.TryAcquire(() => Dispatcher.BeginInvoke(() => Hub.Tray?.Restore())))
+            {
+                Shutdown();
+                return;
+            }
             Hub.Init();
             ApplyTheme(Hub.Store.Settings.Theme);
 
@@ -27,7 +33,14 @@ public partial class App : Application
             var win = new MainWindow();
             MainWindow = win;
             ShutdownMode = ShutdownMode.OnMainWindowClose;
-            win.Show();
+            Hub.InitTray(win);
+            if (Hub.Store.Settings.StartInTray)
+            {
+                // the handle must exist for the controller hook; the window itself stays hidden until the icon is clicked
+                new System.Windows.Interop.WindowInteropHelper(win).EnsureHandle();
+                Hub.Tray!.HideToTray();
+            }
+            else win.Show();
             splash.Close();
             win.ReportSources(result);
         }
@@ -64,9 +77,11 @@ public partial class App : Application
 
     protected override void OnExit(ExitEventArgs e)
     {
+        try { Hub.Tray?.Dispose(); } catch { } // removes the icon; otherwise it lingers until hovered
         try { Hub.Store?.Save(); } catch { }
         try { Venix.Trainer.TrainerHub.ShutdownAll(); } catch { } // restores game code patched by active scripts
         Hub.Torrents?.ShutdownAsync().Wait(TimeSpan.FromSeconds(4));
+        SingleInstance.Release();
         base.OnExit(e);
     }
 }

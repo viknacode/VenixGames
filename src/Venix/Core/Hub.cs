@@ -12,6 +12,8 @@ public static class Hub
     public static TorrentService Torrents { get; private set; } = null!;
     public static CheatService Cheats { get; private set; } = null!;
     public static GamepadService Gamepad { get; private set; } = null!;
+    /// <summary>Notification-area icon; exists once the main window does.</summary>
+    public static TrayService? Tray { get; private set; }
 
     static HttpClient CreateHttp()
     {
@@ -31,6 +33,8 @@ public static class Hub
         Cheats = new CheatService(Http, Store);
         Gamepad = new GamepadService(Store);
     }
+
+    public static void InitTray(MainWindow win) => Tray = new TrayService(win);
 
     public static string GameId(int? appId, string title) => appId is { } id ? $"steam-{id}" : $"t-{Titles.Normalize(title)}";
 }

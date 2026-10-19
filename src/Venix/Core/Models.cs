@@ -41,6 +41,10 @@ public class AppSettings
     public string? GamepadPrimaryId { get; set; }
     /// <summary>Present non-Xbox controllers to games as a virtual Xbox 360 pad while they run (needs ViGEmBus).</summary>
     public bool GamepadLaunchSupport { get; set; } = true;
+    /// <summary>Closing the window with an active download hides it to the notification area and keeps downloading.</summary>
+    public bool CloseToTray { get; set; } = true;
+    /// <summary>Start with the window hidden; only the tray icon shows until it is clicked.</summary>
+    public bool StartInTray { get; set; }
 
     public static readonly string[] DefaultTrackers =
     {
