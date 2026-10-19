@@ -45,13 +45,15 @@ public class TorrentService
     /// qBittorrent's defaults; the listen port is fixed so the UPnP mapping and DHT identity stay the
     /// same between runs.
     /// </summary>
+    static readonly string CacheDir = Path.Combine(AppStore.DataDir, "torrent-cache");
+
     EngineSettings BuildSettings()
     {
         var s = _store.Settings;
         var port = ListenPort();
         return new EngineSettingsBuilder
         {
-            CacheDirectory = Path.Combine(AppStore.DataDir, "torrent-cache"),
+            CacheDirectory = CacheDir,
             AutoSaveLoadFastResume = true,
             AutoSaveLoadMagnetLinkMetadata = true,
             AutoSaveLoadDhtCache = true,
@@ -134,6 +136,9 @@ public class TorrentService
                 _managers[d.Id] = m;
                 m.TorrentStateChanged += (_, e) => Application.Current.Dispatcher.InvokeAsync(() => OnState(d, m, e.NewState));
             }
+            // The engine (re)starts its DHT from dht_nodes.cache whenever the first torrent starts; make
+            // sure the file holds routers that answer (see DhtBootstrap). Cheap after the first call.
+            try { await DhtBootstrap.SeedCacheAsync(CacheDir); } catch { /* offline: engine falls back to its own router */ }
             await m.StartAsync();
         }
         catch (Exception ex)

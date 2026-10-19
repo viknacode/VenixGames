@@ -33,6 +33,11 @@ public class AppSettings
     /// <summary>Public trackers appended to every magnet (many list magnets carry none).</summary>
     public bool AddPublicTrackers { get; set; } = true;
     public List<string> Trackers { get; set; } = DefaultTrackers.ToList();
+    /// <summary>
+    /// Which revision of <see cref="DefaultTrackers"/> was merged into <see cref="Trackers"/> (see <see cref="Migrate"/>).
+    /// Defaults to 0 on purpose: a venix.json written before this field existed must migrate too.
+    /// </summary>
+    public int TrackersVersion { get; set; }
     /// <summary>Last queries typed in the title-bar search (newest first, no duplicates), shown as "Buscas recentes".</summary>
     public List<string> SearchHistory { get; set; } = new();
     /// <summary>Navigate the launcher with a connected controller (D-pad/stick, A, B, LB/RB...).</summary>
@@ -46,19 +51,62 @@ public class AppSettings
     /// <summary>Start with the window hidden; only the tray icon shows until it is clicked.</summary>
     public bool StartInTray { get; set; }
 
+    /// <summary>
+    /// Bump when <see cref="DefaultTrackers"/> changes: the saved list of existing installs is a copy of the
+    /// defaults from first run, so new entries would otherwise never reach them.
+    /// </summary>
+    public const int CurrentTrackersVersion = 2;
+
+    /// <summary>Folds new default trackers into a saved list (keeps the user's own entries and order).</summary>
+    public void Migrate()
+    {
+        if (TrackersVersion >= CurrentTrackersVersion) return;
+        Trackers = Trackers.Concat(DefaultTrackers).Distinct(StringComparer.OrdinalIgnoreCase).ToList();
+        TrackersVersion = CurrentTrackersVersion;
+    }
+
+    /// <summary>
+    /// The public trackers Hydra appends to every magnet (its fallback list), so both clients announce to the
+    /// same swarms. Every tracker is its own tier, so dead ones cost nothing but a timed-out announce.
+    /// </summary>
     public static readonly string[] DefaultTrackers =
     {
         "udp://tracker.opentrackr.org:1337/announce",
+        "http://tracker.opentrackr.org:1337/announce",
         "udp://open.demonii.com:1337/announce",
         "udp://open.stealth.si:80/announce",
         "udp://tracker.torrent.eu.org:451/announce",
         "udp://exodus.desync.com:6969/announce",
         "udp://explodie.org:6969/announce",
-        "udp://tracker.tiny-vps.com:6969/announce",
-        "udp://tracker.dler.org:6969/announce",
-        "udp://open.tracker.cl:1337/announce",
         "udp://tracker.theoks.net:6969/announce",
-        "http://tracker.opentrackr.org:1337/announce",
+        "udp://tracker.dler.org:6969/announce",
+        "udp://tracker2.dler.org:80/announce",
+        "udp://tracker.tiny-vps.com:6969/announce",
+        "udp://open.tracker.cl:1337/announce",
+        "udp://tracker-udp.gbitt.info:80/announce",
+        "udp://tracker.bittor.pw:1337/announce",
+        "udp://tracker.0x7c0.com:6969/announce",
+        "udp://opentracker.io:6969/announce",
+        "udp://retracker01-msk-virt.corbina.net:80/announce",
+        "udp://bt1.archive.org:6969/announce",
+        "udp://bt2.archive.org:6969/announce",
+        "udp://moonburrow.club:6969/announce",
+        "udp://leet-tracker.moe:1337/announce",
+        "udp://new-line.net:6969/announce",
+        "udp://u.peer-exchange.download:6969/announce",
+        "udp://ttk2.nbaonlineservice.com:6969/announce",
+        "udp://tracker.srv00.com:6969/announce",
+        "udp://tracker.fnix.net:6969/announce",
+        "udp://tracker.filemail.com:6969/announce",
+        "udp://tracker.dump.cl:6969/announce",
+        "udp://tracker.darkness.services:6969/announce",
+        "udp://p4p.arenabg.com:1337/announce",
+        "udp://open.dstud.io:6969/announce",
+        "udp://open.demonoid.ch:6969/announce",
+        "udp://evan.im:6969/announce",
+        "udp://run.publictracker.xyz:6969/announce",
+        "http://tracker2.dler.org:80/announce",
+        "http://tracker1.bt.moack.co.kr:80/announce",
         "https://tracker.tamersunion.org:443/announce"
     };
 }

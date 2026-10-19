@@ -27,7 +27,12 @@ public class AppStore
     {
         Directory.CreateDirectory(DataDir);
         if (!File.Exists(FilePath)) return new AppStore();
-        try { return JsonSerializer.Deserialize<AppStore>(File.ReadAllText(FilePath), Json) ?? new AppStore(); }
+        try
+        {
+            var store = JsonSerializer.Deserialize<AppStore>(File.ReadAllText(FilePath), Json) ?? new AppStore();
+            store.Settings.Migrate();
+            return store;
+        }
         catch (Exception ex)
         {
             // Never silently start from scratch: keep the unreadable file for recovery and say why.
