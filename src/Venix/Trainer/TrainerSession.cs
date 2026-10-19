@@ -60,6 +60,16 @@ public class TrainerEntry : Observable
 
     /// <summary>Bytes kept in memory while frozen.</summary>
     public byte[]? Frozen { get; set; }
+
+    /// <summary>Profile record behind this entry when it was discovered with the scanner (null for .ct entries).</summary>
+    public SavedCheat? Saved { get; set; }
+    public bool IsDiscovered => Saved != null;
+    /// <summary>How the address was found on the last attach ("ponteiro", "estático"...), for discovered cheats.</summary>
+    public string ResolvedHow { get => _how; set { if (Set(ref _how, value)) Raise(nameof(HowLabel)); } }
+    string _how = "";
+    public string HowLabel => Saved == null ? "" : ResolvedHow.Length > 0 ? ResolvedHow : Saved.HowLabel;
+    /// <summary>Discovered cheats that survive a game restart (pointer chain / static / signature).</summary>
+    public bool IsPersistent => Saved?.IsPersistent == true;
 }
 
 /// <summary>
@@ -80,19 +90,29 @@ public class TrainerSession : Observable, IDisposable
     public string? TablePath { get; }
     public CtTable Table { get; }
     public string? ProcessHint { get; set; }
-    public List<TrainerEntry> Entries { get; } = new();
+    public System.Collections.ObjectModel.ObservableCollection<TrainerEntry> Entries { get; } = new();
     public GameProcess? Game => _game;
     public bool IsAttached => _game != null && !_game.HasExited;
     public string Status { get => _status; private set => Set(ref _status, value); }
+    /// <summary>Scanner profile this session hosts (cheats discovered by the user), null for plain .ct sessions.</summary>
+    public CheatProfile? Profile { get; }
+    public string? ProfileWarning { get => _profileWarning; private set => Set(ref _profileWarning, value); }
+    string? _profileWarning;
+    /// <summary>Symbols visible to address expressions ("registersymbol", discovered cheats, user symbols).</summary>
+    public SymbolTable Symbols => _globals;
+    int _nextId = 100000;
 
     public event Action? AttachedChanged;
+    /// <summary>Raised on the UI thread after a discovered cheat is added or removed.</summary>
+    public event Action? EntriesChanged;
 
-    public TrainerSession(string name, string? tablePath, CtTable table, string? processHint)
+    public TrainerSession(string name, string? tablePath, CtTable table, string? processHint, CheatProfile? profile = null)
     {
         Name = name;
         TablePath = tablePath;
         Table = table;
-        ProcessHint = processHint ?? table.ProcessHint;
+        Profile = profile;
+        ProcessHint = processHint ?? table.ProcessHint ?? profile?.Exe;
         void Add(IEnumerable<CtEntry> list, TrainerEntry? parent)
         {
             foreach (var e in list)
@@ -104,9 +124,102 @@ public class TrainerSession : Observable, IDisposable
             }
         }
         Add(table.Entries, null);
+        if (profile != null)
+            foreach (var c in profile.Cheats) AddSavedEntry(c);
         _refresh.Tick += (_, _) => Tick();
         _refresh.Start();
-        _freezer = new System.Threading.Timer(_ => FreezeTick(), null, 100, 100);
+        _freezer = new System.Threading.Timer(_ => FreezeTick(), null, 50, 50);
+    }
+
+    /* ---------------------------------------------------------- discovered cheats (scanner) */
+
+    TrainerEntry AddSavedEntry(SavedCheat c)
+    {
+        var entry = c.ToEntry(_nextId++, "venix_" + c.Id);
+        var vm = new TrainerEntry(entry, null) { Saved = c };
+        Entries.Add(vm);
+        return vm;
+    }
+
+    /// <summary>Adds a cheat found by the scanner to this session (and to the profile on disk when there is one).</summary>
+    public TrainerEntry AddDiscovered(SavedCheat c, long? liveAddress)
+    {
+        if (Profile != null && !Profile.Cheats.Contains(c)) Profile.Cheats.Add(c);
+        var vm = AddSavedEntry(c);
+        if (liveAddress is { } a)
+        {
+            _globals.Set("venix_" + c.Id, a);
+            vm.ResolvedHow = c.IsPersistent ? "" : "endereço desta execução";
+        }
+        SaveProfile();
+        EntriesChanged?.Invoke();
+        return vm;
+    }
+
+    public void RemoveDiscovered(TrainerEntry vm)
+    {
+        if (vm.Saved == null) return;
+        vm.IsActive = false;
+        vm.Frozen = null;
+        Entries.Remove(vm);
+        Profile?.Cheats.Remove(vm.Saved);
+        _globals.Remove("venix_" + vm.Saved.Id);
+        SaveProfile();
+        EntriesChanged?.Invoke();
+    }
+
+    /// <summary>Re-saves the profile after a change in a cheat (name, pointer chains, value).</summary>
+    public void SaveProfile()
+    {
+        if (Profile == null) return;
+        if (_game != null && !_game.HasExited) Profile.StampExe(_game);
+        try { CheatProfiles.Save(Profile); } catch { }
+    }
+
+    /// <summary>Discovered cheats whose address is known right now.</summary>
+    public IEnumerable<TrainerEntry> ResolvedDiscovered => Entries.Where(e => e.Saved != null && Resolve(e.Entry) != null);
+
+    /// <summary>Resolves every discovered cheat against the attached game (pointer chains first) and registers its symbol.</summary>
+    void ResolveDiscovered()
+    {
+        if (_game == null) return;
+        foreach (var vm in Entries)
+        {
+            if (vm.Saved == null) continue;
+            var addr = vm.Saved.Resolve(_game, out var how);
+            if (addr is { } a)
+            {
+                _globals.Set("venix_" + vm.Saved.Id, a);
+                vm.Saved.LastAddress = a.ToString("X");
+                vm.ResolvedHow = how;
+                vm.Error = null;
+            }
+            else
+            {
+                _globals.Remove("venix_" + vm.Saved.Id);
+                vm.ResolvedHow = "";
+                vm.Error = vm.Saved.IsPersistent ? "Não encontrado nesta execução (o jogo mudou?). Refaça a busca." : "Endereço de outra execução. Refaça a busca.";
+            }
+        }
+        if (Profile != null) ProfileWarning = Profile.VersionWarning(_game);
+    }
+
+    /// <summary>Activates (writes the saved value and freezes) every discovered cheat that resolved. Returns how many.</summary>
+    public async Task<int> ActivateDiscoveredAsync()
+    {
+        int n = 0;
+        foreach (var vm in Entries.Where(e => e.Saved != null).ToList())
+        {
+            if (Resolve(vm.Entry) == null) continue;
+            try
+            {
+                if (!string.IsNullOrWhiteSpace(vm.Saved!.Value)) WriteValue(vm, vm.Saved.Value);
+                await SetActiveAsync(vm, true);
+                if (vm.IsActive) n++;
+            }
+            catch (Exception ex) { vm.Error = ex.Message; }
+        }
+        return n;
     }
 
     /* ---------------------------------------------------------- attach */
@@ -133,6 +246,7 @@ public class TrainerSession : Observable, IDisposable
             }
             catch { }
         }
+        ResolveDiscovered();
         Status = $"{process.ProcessName}.exe  ·  PID {process.Id}  ·  {gp.Bitness}-bit";
         AttachedChanged?.Invoke();
         Raise(nameof(IsAttached));
@@ -144,10 +258,11 @@ public class TrainerSession : Observable, IDisposable
         if (disableScripts && !_game.HasExited)
             foreach (var e in Entries.Where(e => e.IsScript && e.IsActive).Reverse())
                 try { RunScript(e, false); } catch { }
-        foreach (var e in Entries) { e.IsActive = false; e.Frozen = null; e.Error = null; e.Value = ""; }
+        foreach (var e in Entries) { e.IsActive = false; e.Frozen = null; e.Error = null; e.Value = ""; e.ResolvedHow = ""; if (e.Saved != null) _globals.Remove("venix_" + e.Saved.Id); }
         _states.Clear();
         _game.Dispose();
         _game = null;
+        ProfileWarning = null;
         Status = "Aguardando o jogo…";
         AttachedChanged?.Invoke();
         Raise(nameof(IsAttached));
@@ -295,7 +410,17 @@ public class TrainerSession : Observable, IDisposable
         _game.Write((nint)addr, bytes);
         if (vm.IsActive) vm.Frozen = bytes; // keep the new value frozen
         vm.Value = Format(e, bytes);
+        if (vm.Saved != null && vm.Saved.Value != input) { vm.Saved.Value = input; SaveProfile(); }
     }
+
+    /// <summary>Current raw bytes of a value entry, or null when its address is unknown right now.</summary>
+    public byte[]? ReadBytes(TrainerEntry vm)
+    {
+        var addr = Resolve(vm.Entry);
+        return addr != null && _game != null ? _game.TryRead((nint)addr.Value, ValueSize(vm.Entry)) : null;
+    }
+
+    public long? Address(TrainerEntry vm) => Resolve(vm.Entry);
 
     byte[] BinaryWrite(CtEntry e, nint addr, long value)
     {

@@ -23,9 +23,27 @@ public static class TrainerHub
         return session;
     }
 
+    /// <summary>Session hosting the cheats the user discovered with the scanner for a game (one per game id).</summary>
+    public static TrainerSession OpenProfile(string gameId, string title, string? exe)
+    {
+        var key = "profile:" + gameId;
+        if (Sessions.TryGetValue(key, out var existing))
+        {
+            if (exe != null && existing.ProcessHint == null) existing.ProcessHint = Path.GetFileName(exe);
+            return existing;
+        }
+        var profile = CheatProfiles.LoadOrCreate(gameId, title, exe);
+        var session = new TrainerSession(title, null, new CtTable(), exe != null ? Path.GetFileName(exe) : profile.Exe, profile);
+        Sessions[key] = session;
+        return session;
+    }
+
+    public static TrainerSession? FindProfile(string gameId) => Sessions.GetValueOrDefault("profile:" + gameId);
+
     public static void Close(TrainerSession s)
     {
-        if (s.TablePath != null) Sessions.Remove(s.TablePath);
+        var key = s.TablePath ?? (s.Profile != null ? "profile:" + s.Profile.GameId : null);
+        if (key != null) Sessions.Remove(key);
         s.Dispose();
     }
 

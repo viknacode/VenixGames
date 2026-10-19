@@ -9,7 +9,8 @@ internal static partial class Native
     public const uint PROCESS_QUERY_INFORMATION = 0x0400, PROCESS_QUERY_LIMITED_INFORMATION = 0x1000;
     public const uint THREAD_SUSPEND_RESUME = 0x0002;
     public const uint MEM_COMMIT = 0x1000, MEM_RESERVE = 0x2000, MEM_RELEASE = 0x8000, MEM_FREE = 0x10000, MEM_PRIVATE = 0x20000;
-    public const uint PAGE_NOACCESS = 0x01, PAGE_GUARD = 0x100, PAGE_EXECUTE_READWRITE = 0x40;
+    public const uint PAGE_NOACCESS = 0x01, PAGE_READWRITE = 0x04, PAGE_WRITECOPY = 0x08, PAGE_GUARD = 0x100, PAGE_EXECUTE_READWRITE = 0x40, PAGE_EXECUTE_WRITECOPY = 0x80;
+    public const uint MEM_IMAGE = 0x1000000, MEM_MAPPED = 0x40000;
     public const uint TH32CS_SNAPMODULE = 0x08, TH32CS_SNAPMODULE32 = 0x10;
 
     [LibraryImport("kernel32.dll", SetLastError = true)]
