@@ -517,6 +517,7 @@ public partial class ScannerPage : UserControl, IPage
         _discovery = null;
         _testing = null;
         StepCard.Visibility = Visibility.Collapsed;
+        StepValueRow.Visibility = Visibility.Collapsed;
         CandidatePanel.Visibility = Visibility.Collapsed;
         TestCard.Visibility = Visibility.Collapsed;
         RestartBtn.Visibility = Visibility.Collapsed;
@@ -588,6 +589,7 @@ public partial class ScannerPage : UserControl, IPage
         var d = _discovery;
         if (d == null) return;
         StepCard.Visibility = Visibility.Visible;
+        StepValueRow.Visibility = Visibility.Visible;
         StepButtons.Children.Clear();
         var step = d.CurrentStep;
         if (d.Kind != DiscoveryKind.Custom && step != null)

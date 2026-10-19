@@ -220,13 +220,15 @@
                                     <TextBlock x:Name="StepTitle" Style="{StaticResource T.H2}" Foreground="{DynamicResource Ink.Text}" Margin="0,4,0,0" />
                                     <TextBlock x:Name="StepText" FontSize="13" Foreground="{DynamicResource Ink.Text}" Opacity="0.8" TextWrapping="Wrap" Margin="0,6,0,14" LineHeight="20" />
                                     <WrapPanel x:Name="StepButtons" />
-                                    <StackPanel Orientation="Horizontal" Margin="0,4,0,0">
-                                        <TextBlock Text="Sabe o valor?" FontSize="12.5" Foreground="{DynamicResource Ink.Text}" Opacity="0.7" VerticalAlignment="Center" Margin="0,0,10,0" />
-                                        <TextBox x:Name="StepValue" Style="{StaticResource Input}" Width="150" Height="34" Padding="12,0" Tag="quanto está agora" KeyDown="OnStepValueKey" />
-                                        <Button Style="{StaticResource Btn.Frost}" Content="Filtrar pelo valor" Height="34" Padding="14,0" FontSize="12.5" Margin="8,0,0,0" Click="OnStepValue" />
-                                    </StackPanel>
                                 </StackPanel>
                             </Border>
+                            <!-- outside the dark card so the standard input keeps its colours in both themes -->
+                            <StackPanel x:Name="StepValueRow" Orientation="Horizontal" Margin="4,12,0,0" Visibility="Collapsed">
+                                <TextBlock Text="Sabe o valor?" Style="{StaticResource T.Label}" VerticalAlignment="Center" Margin="0,0,10,0" />
+                                <TextBox x:Name="StepValue" Style="{StaticResource Input}" Width="170" Height="36" Padding="14,0" Tag="quanto está agora" KeyDown="OnStepValueKey" />
+                                <Button Style="{StaticResource SmallBtn}" Content="Filtrar pelo valor" Height="36" Margin="8,0,0,0" Click="OnStepValue" />
+                                <TextBlock Text="Digite o que o jogo mostra agora, em vez de só dizer se subiu ou desceu." Style="{StaticResource T.Label}" VerticalAlignment="Center" Margin="12,0,0,0" TextTrimming="CharacterEllipsis" />
+                            </StackPanel>
 
                             <!-- candidates -->
                             <StackPanel x:Name="CandidatePanel" Margin="0,16,0,0" Visibility="Collapsed">
