@@ -105,6 +105,7 @@ public partial class MainWindow : Window
         Show(key switch
         {
             "catalog" => new CatalogPage(),
+            "updates" => new UpdatesPage(),
             "library" => new LibraryPage(),
             "downloads" => new DownloadsPage(),
             "settings" => new SettingsPage(),
@@ -143,7 +144,7 @@ public partial class MainWindow : Window
         PageSubtitle.Text = p?.Subtitle ?? "";
         PageSubtitle.Visibility = string.IsNullOrEmpty(PageSubtitle.Text) ? Visibility.Collapsed : Visibility.Visible;
         BackBtn.Visibility = _history.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
-        foreach (var (rb, key) in new[] { (NavHome, "home"), (NavCatalog, "catalog"), (NavLibrary, "library"), (NavDownloads, "downloads"), (NavSettings, "settings"), (NavCheats, "cheats") })
+        foreach (var (rb, key) in new[] { (NavHome, "home"), (NavCatalog, "catalog"), (NavUpdates, "updates"), (NavLibrary, "library"), (NavDownloads, "downloads"), (NavSettings, "settings"), (NavCheats, "cheats") })
             rb.IsChecked = p?.NavKey == key;
         Ui.FadeIn(page, 14, 300);
     }
@@ -160,7 +161,7 @@ public partial class MainWindow : Window
 
     void OnNav(object sender, RoutedEventArgs e)
     {
-        var key = sender == NavCatalog ? "catalog" : sender == NavLibrary ? "library" : sender == NavDownloads ? "downloads" : sender == NavSettings ? "settings" : sender == NavCheats ? "cheats" : "home";
+        var key = sender == NavCatalog ? "catalog" : sender == NavUpdates ? "updates" : sender == NavLibrary ? "library" : sender == NavDownloads ? "downloads" : sender == NavSettings ? "settings" : sender == NavCheats ? "cheats" : "home";
         Go(key);
     }
 

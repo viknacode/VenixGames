@@ -58,6 +58,7 @@
                     <StackPanel Grid.Row="1">
                         <RadioButton x:Name="NavHome" Style="{StaticResource Nav}" Content="Início" Tag="{x:Static core:Icons.Home}" Click="OnNav" />
                         <RadioButton x:Name="NavCatalog" Style="{StaticResource Nav}" Content="Catálogo" Tag="{x:Static core:Icons.Catalog}" Click="OnNav" />
+                        <RadioButton x:Name="NavUpdates" Style="{StaticResource Nav}" Content="Atualizações" Tag="{x:Static core:Icons.Update}" Click="OnNav" />
                         <RadioButton x:Name="NavLibrary" Style="{StaticResource Nav}" Content="Biblioteca" Tag="{x:Static core:Icons.Library}" Click="OnNav" />
                         <RadioButton x:Name="NavCheats" Style="{StaticResource Nav}" Content="Cheats" Tag="{x:Static core:Icons.Cheat}" Click="OnNav" />
                         <RadioButton x:Name="NavDownloads" Style="{StaticResource Nav}" Content="Downloads" Tag="{x:Static core:Icons.Download}" Click="OnNav" />

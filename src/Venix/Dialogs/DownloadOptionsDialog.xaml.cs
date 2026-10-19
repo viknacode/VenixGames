@@ -16,7 +16,8 @@ public partial class DownloadOptionsDialog : UserControl
     SourceEntry? _picked;
     string _savePath = Hub.Store.Settings.DownloadDir;
 
-    public DownloadOptionsDialog(string gameId, int? appId, string name, List<SourceEntry> entries)
+    /// <param name="preselect">Option that starts checked (e.g. the row "Baixar" was clicked on in Atualizações); must be one of <paramref name="entries"/>.</param>
+    public DownloadOptionsDialog(string gameId, int? appId, string name, List<SourceEntry> entries, SourceEntry? preselect = null)
     {
         InitializeComponent();
         _gameId = gameId;
@@ -25,6 +26,16 @@ public partial class DownloadOptionsDialog : UserControl
         _all = entries;
         Sub.Text = $"{name}  ·  {Summary(entries)}";
         SavePath.Text = _savePath;
+        if (preselect != null)
+        {
+            // the flag lives on the shared entry, so it is cleared as soon as the dialog goes away
+            preselect.Preselected = true;
+            Unloaded += (_, _) => preselect.Preselected = false;
+            Loaded += (_, _) => Dispatcher.BeginInvoke(() =>
+            {
+                if (List.ItemContainerGenerator.ContainerFromItem(preselect) is FrameworkElement c) c.BringIntoView();
+            }, System.Windows.Threading.DispatcherPriority.Loaded);
+        }
 
         void AddChip(string label, string? value)
         {
@@ -41,14 +52,10 @@ public partial class DownloadOptionsDialog : UserControl
         Apply();
     }
 
-    /// <summary>"3 opções de jogo  ·  2 atualizações  ·  1 fix" (kinds that are absent are left out).</summary>
+    /// <summary>"3 opções de jogo  ·  2 atualizações  ·  1 patch  ·  1 fix" (kinds that are absent are left out).</summary>
     static string Summary(List<SourceEntry> entries)
     {
-        int games = entries.Count(e => e.Kind == EntryKind.Game), ups = entries.Count(e => e.Kind == EntryKind.Update), fixes = entries.Count(e => e.Kind == EntryKind.Fix);
-        var parts = new List<string>();
-        if (games > 0) parts.Add($"{games} opç{(games > 1 ? "ões" : "ão")} de jogo");
-        if (ups > 0) parts.Add($"{ups} atualizaç{(ups > 1 ? "ões" : "ão")}");
-        if (fixes > 0) parts.Add($"{fixes} fix{(fixes > 1 ? "es" : "")}");
+        var parts = entries.GroupBy(e => e.Kind).OrderBy(g => g.Key).Select(g => EntryClassifier.Count(g.Key, g.Count())).ToList();
         return parts.Count > 0 ? string.Join("  ·  ", parts) : "nenhuma opção";
     }
 
@@ -56,7 +63,7 @@ public partial class DownloadOptionsDialog : UserControl
     {
         var q = Titles.Normalize(Filter.Text);
         var items = _all.Where(e => (_source == null || e.SourceName == _source) && (q.Length == 0 || Titles.Normalize(e.Title).Contains(q)))
-            .OrderBy(e => e.Kind)                                                    // Jogo, Atualizações, Fixes
+            .OrderBy(e => e.Kind)                                                    // Jogo, Atualizações, Patches, Fixes
             .ThenByDescending(e => e.UploadDate ?? "", StringComparer.Ordinal)
             .ToList();
         // one section per kind, in that order; a kind with no entries simply has no section

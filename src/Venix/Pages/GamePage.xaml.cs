@@ -168,11 +168,8 @@ public partial class GamePage : UserControl, IPage
             Child = new TextBlock { Text = text, FontSize = 12, Foreground = (Brush)FindResource("Text.2") }
         });
         foreach (var grp in _repacks.Where(r => r.IsGame).GroupBy(r => r.SourceName)) Chip($"{grp.Key}  {grp.Count()}");
-        // updates and fixes are counted apart from the full-game options
-        var ups = _repacks.Count(r => r.Kind == EntryKind.Update);
-        var fixes = _repacks.Count(r => r.Kind == EntryKind.Fix);
-        if (ups > 0) Chip($"{ups} atualizaç{(ups > 1 ? "ões" : "ão")}");
-        if (fixes > 0) Chip($"{fixes} fix{(fixes > 1 ? "es" : "")}");
+        // updates, patches and fixes are counted apart from the full-game options
+        foreach (var grp in _repacks.Where(r => !r.IsGame).GroupBy(r => r.Kind).OrderBy(g => g.Key)) Chip(EntryClassifier.Count(grp.Key, grp.Count()));
     }
 
     void UpdateLibrary()

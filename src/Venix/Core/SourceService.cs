@@ -17,12 +17,15 @@ public class SourceService
     readonly HttpClient _http;
     List<SourceEntry> _entries = new();
     List<CatalogGroup>? _groups;
+    List<ExtraEntry> _extras = new();
     SearchIndex? _index;
     readonly object _indexLock = new();
 
     public event Action? IndexChanged;
     public int EntryCount => _entries.Count;
     public int GameCount => Groups.Count;
+    /// <summary>Every update, patch and fix of every list, newest first, each tied to its catalog game (built with the index, off the UI thread).</summary>
+    public IReadOnlyList<ExtraEntry> Extras => _extras;
 
     public SourceService(AppStore store, HttpClient http)
     {
@@ -68,8 +71,11 @@ public class SourceService
             }
             catch { /* a corrupted cache file just means the source needs a re-sync */ }
         }
+        // groups (and the update/patch/fix links) are built here, still off the UI thread
+        var (groups, extras) = BuildGroups(list);
         _entries = list;
-        lock (_indexLock) { _groups = null; _index = null; }
+        _extras = extras;
+        lock (_indexLock) { _groups = groups; _index = null; }
     }
 
     static (string? name, JsonArray downloads) Parse(string text)
@@ -242,30 +248,39 @@ public class SourceService
 
     List<CatalogGroup> Groups
     {
-        get
+        get { lock (_indexLock) return _groups ??= BuildGroups(_entries).groups; }
+    }
+
+    static (List<CatalogGroup> groups, List<ExtraEntry> extras) BuildGroups(List<SourceEntry> entries)
+    {
+        var map = new Dictionary<string, CatalogGroup>();
+        // only full games become catalog entries…
+        foreach (var e in entries)
         {
-            if (_groups != null) return _groups;
-            var map = new Dictionary<string, CatalogGroup>();
-            // only full games become catalog entries…
-            foreach (var e in _entries)
-            {
-                if (!e.IsGame || e.Norm.Length == 0) continue;
-                if (!map.TryGetValue(e.Norm, out var g)) map[e.Norm] = g = new CatalogGroup { Key = e.Norm, Title = e.Clean };
-                if (!g.Sources.Contains(e.SourceName)) g.Sources.Add(e.SourceName);
-                g.Count++;
-                if (e.UploadDate != null && string.CompareOrdinal(e.UploadDate, g.Latest) > 0) g.Latest = e.UploadDate;
-            }
-            // …updates and fixes hang off the game they belong to (an update with no game in any list is simply not a catalog item)
-            foreach (var e in _entries)
-            {
-                if (e.IsGame || e.Norm.Length == 0) continue;
-                var g = FindGroup(map, e.Norm);
-                if (g == null) continue;
-                if (e.Kind == EntryKind.Update) g.Updates++; else g.Fixes++;
-                if (!g.Sources.Contains(e.SourceName)) g.Sources.Add(e.SourceName);
-            }
-            return _groups = map.Values.ToList();
+            if (!e.IsGame || e.Norm.Length == 0) continue;
+            if (!map.TryGetValue(e.Norm, out var g)) map[e.Norm] = g = new CatalogGroup { Key = e.Norm, Title = e.Clean };
+            if (!g.Sources.Contains(e.SourceName)) g.Sources.Add(e.SourceName);
+            g.Count++;
+            if (e.UploadDate != null && string.CompareOrdinal(e.UploadDate, g.Latest) > 0) g.Latest = e.UploadDate;
         }
+        // …updates, patches and fixes hang off the game they belong to (one with no game in any list is simply not a catalog item)
+        var extras = new List<ExtraEntry>();
+        foreach (var e in entries)
+        {
+            if (e.IsGame) continue;
+            var g = e.Norm.Length > 0 ? FindGroup(map, e.Norm) : null;
+            extras.Add(new ExtraEntry { Entry = e, Game = g });
+            if (g == null) continue;
+            switch (e.Kind)
+            {
+                case EntryKind.Update: g.Updates++; break;
+                case EntryKind.Patch: g.Patches++; break;
+                default: g.Fixes++; break;
+            }
+            if (!g.Sources.Contains(e.SourceName)) g.Sources.Add(e.SourceName);
+        }
+        extras.Sort((a, b) => string.CompareOrdinal(b.Entry.UploadDate ?? "", a.Entry.UploadDate ?? ""));
+        return (map.Values.ToList(), extras);
     }
 
     /// <summary>
@@ -307,7 +322,7 @@ public class SourceService
         return (arr.Count, arr.Skip(offset).Take(limit).ToList());
     }
 
-    /// <summary>Every option for a game — full game first, then its updates, then its fixes, newest first within each kind.</summary>
+    /// <summary>Every option for a game — full game first, then updates, patches and fixes, newest first within each kind.</summary>
     public List<SourceEntry> FindRepacks(string gameName)
     {
         var target = Titles.Normalize(Titles.Clean(gameName));

@@ -47,6 +47,10 @@
                                             <Setter TargetName="hint" Property="Text" Value="Aplicar sobre o jogo já instalado" />
                                             <Setter TargetName="hint" Property="Visibility" Value="Visible" />
                                         </DataTrigger>
+                                        <DataTrigger Binding="{Binding Name}" Value="Patches">
+                                            <Setter TargetName="hint" Property="Text" Value="Patch ou hotfix para o jogo já instalado" />
+                                            <Setter TargetName="hint" Property="Visibility" Value="Visible" />
+                                        </DataTrigger>
                                         <DataTrigger Binding="{Binding Name}" Value="Fixes">
                                             <Setter TargetName="hint" Property="Text" Value="Correções para um jogo já instalado" />
                                             <Setter TargetName="hint" Property="Visibility" Value="Visible" />
@@ -58,7 +62,8 @@
                     </ItemsControl.GroupStyle>
                     <ItemsControl.ItemTemplate>
                         <DataTemplate DataType="core:SourceEntry">
-                            <RadioButton GroupName="opt" Checked="OnPick" Cursor="Hand" FocusVisualStyle="{x:Null}" Margin="0,0,0,8">
+                            <RadioButton GroupName="opt" Checked="OnPick" Cursor="Hand" FocusVisualStyle="{x:Null}" Margin="0,0,0,8"
+                                         IsChecked="{Binding Preselected, Mode=OneTime}">
                                 <RadioButton.Template>
                                     <ControlTemplate TargetType="RadioButton">
                                         <Border x:Name="bd" CornerRadius="18" Padding="18,14" Background="{DynamicResource Glass.Fill}" BorderBrush="{DynamicResource Glass.Border}" BorderThickness="1">

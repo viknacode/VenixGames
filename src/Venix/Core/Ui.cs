@@ -15,6 +15,7 @@ public static class Icons
     public const string Minimize = "", Maximize = "", Restore = "", ChromeClose = "", Info = "";
     public const string Cheat = "", Shield = "", Code = "";
     public const string Theme = "", Speed = "", People = "", Hourglass = "", Disk = "", Chevron = "";
+    public const string Update = "";
 }
 
 public static class Ui

@@ -193,17 +193,21 @@ public class SourceEntry
     public List<string> Uris { get; init; } = new();
     public string? UploadDate { get; init; }
     public string FileSize { get; init; } = "";
-    /// <summary>Full game, update or fix — read from the title (see <see cref="EntryClassifier"/>).</summary>
+    /// <summary>Full game, update, patch or fix — read from the title (see <see cref="EntryClassifier"/>).</summary>
     public EntryKind Kind { get; init; } = EntryKind.Game;
+    /// <summary>Set by the download dialog so the option it was opened for starts checked (not part of the list data).</summary>
+    public bool Preselected { get; set; }
 
     public bool IsGame => Kind == EntryKind.Game;
-    /// <summary>Section header when options are grouped by kind: "Jogo", "Atualizações", "Fixes".</summary>
+    /// <summary>"Jogo", "Atualização", "Patch", "Fix".</summary>
+    public string KindLabel => EntryClassifier.Label(Kind);
+    /// <summary>Section header when options are grouped by kind: "Jogo", "Atualizações", "Patches", "Fixes".</summary>
     public string Section => EntryClassifier.Section(Kind);
     public string DateLabel => DateTime.TryParse(UploadDate, out var d) ? d.ToString("dd/MM/yyyy") : "";
     public string Meta => string.Join("  ·  ", new[] { FileSize, SourceName, DateLabel }.Where(s => !string.IsNullOrWhiteSpace(s)));
 }
 
-/// <summary>One game of the catalog: every full-game entry sharing a normalized name, plus the updates and fixes linked to it.</summary>
+/// <summary>One game of the catalog: every full-game entry sharing a normalized name, plus the updates, patches and fixes linked to it.</summary>
 public class CatalogGroup
 {
     public string Key { get; init; } = "";
@@ -212,15 +216,26 @@ public class CatalogGroup
     /// <summary>Full-game download options.</summary>
     public int Count { get; set; }
     public int Updates { get; set; }
+    public int Patches { get; set; }
     public int Fixes { get; set; }
     public string? Latest { get; set; }
 
-    /// <summary>"3 atualizações · 1 fix", or "" when the game has neither.</summary>
+    /// <summary>"3 atualizações · 1 patch · 1 fix", or "" when the game has none.</summary>
     public string ExtrasLabel => string.Join(" · ", new[]
     {
-        Updates > 0 ? $"{Updates} atualizaç{(Updates > 1 ? "ões" : "ão")}" : null,
-        Fixes > 0 ? $"{Fixes} fix{(Fixes > 1 ? "es" : "")}" : null
+        Updates > 0 ? EntryClassifier.Count(EntryKind.Update, Updates) : null,
+        Patches > 0 ? EntryClassifier.Count(EntryKind.Patch, Patches) : null,
+        Fixes > 0 ? EntryClassifier.Count(EntryKind.Fix, Fixes) : null
     }.Where(s => s != null));
+}
+
+/// <summary>An update, patch or fix from the lists together with the catalog game it belongs to (null when no list has that game).</summary>
+public class ExtraEntry
+{
+    public SourceEntry Entry { get; init; } = null!;
+    public CatalogGroup? Game { get; init; }
+    /// <summary>Name of the base game: the catalog title when linked, the cleaned entry title otherwise.</summary>
+    public string GameTitle => Game?.Title ?? Entry.Clean;
 }
 
 public class SteamApp
