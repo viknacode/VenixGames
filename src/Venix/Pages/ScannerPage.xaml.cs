@@ -536,10 +536,45 @@ public partial class ScannerPage : UserControl, IPage
         RestartBtn.Visibility = Visibility.Visible;
         CandidatePanel.Visibility = Visibility.Collapsed;
         TestCard.Visibility = Visibility.Collapsed;
-        var ok = await RunScan(engine.StartAsync, AutoProgress, CancelAutoBtn);
+        double? known = null;
+        if (!string.IsNullOrWhiteSpace(KnownValue.Text))
+        {
+            known = MemoryScanner.ParseValue(ScanType.Double, KnownValue.Text);
+            if (known == null) { MainWindow.Instance.Toast("Digite um número válido (ex.: 1500 ou 72,5) ou deixe em branco."); ResetDiscoveryUi(); return; }
+        }
+        var ok = await RunScan((p, ct) => engine.StartAsync(known, p, ct), AutoProgress, CancelAutoBtn);
         if (!ok) { ResetDiscoveryUi(); return; }
-        AutoStatus.Text = $"Foto da memória tirada: {Format.Number(engine.TotalCandidates)} candidatos. Agora siga o passo abaixo.";
+        long n = engine.TotalCandidates;
+        AutoStatus.Text = known != null
+            ? (n == 0 ? $"Nada vale {KnownValue.Text.Trim()} na memória do jogo. Confira o número na tela ou comece sem valor."
+                      : $"{Format.Number(n)} endereço{(n == 1 ? "" : "s")} com o valor {KnownValue.Text.Trim()}. Agora mude esse valor no jogo e siga o passo abaixo.")
+            : $"Foto da memória tirada: {Format.Number(n)} candidatos. Agora siga o passo abaixo.";
         ShowStep();
+        if (known != null && n > 0 && n <= 5000) ShowCandidates();
+    }
+
+    void OnKnownValueKey(object sender, KeyEventArgs e)
+    {
+        if (e.Key == Key.Enter && StartBtn.Visibility == Visibility.Visible) OnStartDiscovery(sender, e);
+    }
+
+    void OnStepValueKey(object sender, KeyEventArgs e)
+    {
+        if (e.Key == Key.Enter) OnStepValue(sender, e);
+    }
+
+    /// <summary>"Sabe o valor?": keeps only the candidates equal to what the user reads on screen right now.</summary>
+    async void OnStepValue(object sender, RoutedEventArgs e)
+    {
+        var d = _discovery;
+        if (d == null || !EnsureAttached() || _busy) return;
+        var v = MemoryScanner.ParseValue(ScanType.Double, StepValue.Text);
+        if (v == null) { MainWindow.Instance.Toast("Digite quanto o valor está agora no jogo (ex.: 425)."); return; }
+        TestCard.Visibility = Visibility.Collapsed;
+        var ok = await RunScan((p, ct) => d.ApplyExactAsync(v.Value, p, ct), AutoProgress, CancelAutoBtn);
+        if (!ok || _discovery != d) return;
+        StepValue.Text = "";
+        AfterStep(d, $"com o valor {v.Value.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
     }
 
     void OnRestartDiscovery(object sender, RoutedEventArgs e)
@@ -596,10 +631,15 @@ public partial class ScannerPage : UserControl, IPage
         if (waitSeconds > 0) AutoStatus.Text = $"Aguardando {waitSeconds} s… não faça nada no jogo.";
         var ok = await RunScan((p, ct) => waitSeconds > 0 ? d.ApplyWaitAsync(waitSeconds, p, ct) : d.ApplyAsync(mode, p, ct), AutoProgress, CancelAutoBtn);
         if (!ok || _discovery != d) return;
+        AfterStep(d, null);
+    }
+
+    void AfterStep(DiscoveryEngine d, string? detail)
+    {
         long n = d.TotalCandidates;
         var byType = string.Join("  ·  ", d.CountsByType.Where(kv => kv.Value > 0).OrderByDescending(kv => kv.Value).Select(kv => $"{ScanOptions.TypeLabel(kv.Key)} {Format.Number(kv.Value)}"));
         AutoStatus.Text = n == 0 ? "Nenhum candidato sobrou. Clique em Recomeçar e tente de novo (ou escolha \"Personalizado\")."
-                        : $"{Format.Number(n)} candidato{(n == 1 ? "" : "s")} restante{(n == 1 ? "" : "s")}   ({byType})";
+                        : $"{Format.Number(n)} candidato{(n == 1 ? "" : "s")} restante{(n == 1 ? "" : "s")}{(detail != null ? " " + detail : "")}   ({byType})";
         ShowStep();
         if (n > 0 && n <= 5000) ShowCandidates();
         else if (n > 5000) CandidatePanel.Visibility = Visibility.Collapsed;

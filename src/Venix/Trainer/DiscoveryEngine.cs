@@ -78,7 +78,7 @@ public sealed class DiscoveryEngine
         },
         DiscoveryKind.Money => new()
         {
-            new("Gaste ou ganhe", "Compre algo, venda algo ou pegue dinheiro no jogo. Depois clique em Continuar.", ScanMode.Changed),
+            new("Gaste ou ganhe", "Compre algo, venda algo ou pegue dinheiro no jogo. Se o jogo mostra o total, digite quanto ficou e clique em Filtrar pelo valor; senão clique em Continuar.", ScanMode.Changed),
             new("Não faça nada", "3 segundos sem mexer no dinheiro.", ScanMode.Unchanged, 3),
             new("Gaste dinheiro", "Agora gaste: o valor tem que diminuir.", ScanMode.Decreased),
             new("Não faça nada", "Mais 3 segundos parado.", ScanMode.Unchanged, 3),
@@ -104,15 +104,64 @@ public sealed class DiscoveryEngine
 
     /* ---------------------------------------------------------- flow */
 
-    /// <summary>Takes the initial snapshot (memory copy of the game). Nothing is filtered yet.</summary>
-    public Task StartAsync(IProgress<ScanProgress>? progress, CancellationToken ct) => Task.Run(() =>
+    /// <summary>
+    /// Starts the discovery. With <paramref name="knownValue"/> (what the game shows right now: money, health…)
+    /// the first step is an exact search over every plausible type, which is a far better start than a raw
+    /// snapshot; without it, takes the initial snapshot (memory copy of the game) and filters nothing yet.
+    /// </summary>
+    public Task StartAsync(double? knownValue, IProgress<ScanProgress>? progress, CancellationToken ct) => Task.Run(() =>
     {
-        var o = new ScanOptions { Mode = ScanMode.Unknown, WritableOnly = WritableOnly, MaxSnapshotBytes = MaxSnapshotBytes };
-        _snapshot = _scanner.Snapshot(o, progress, ct);
         _results.Clear();
+        _snapshot = null;
         StepIndex = 0;
         StepsApplied = 0;
+        if (knownValue is { } v)
+        {
+            ForEachType(progress, ct, t =>
+            {
+                var o = ExactOptions(t, v);
+                try { return _scanner.FirstScan(o, null, ct); }
+                catch (ScanLimitException) { return ScanResults.Empty(t, ScanOptions.SizeOf(t)); }
+            });
+            StepsApplied = 1;
+            return;
+        }
+        var snap = new ScanOptions { Mode = ScanMode.Unknown, WritableOnly = WritableOnly, MaxSnapshotBytes = MaxSnapshotBytes };
+        _snapshot = _scanner.Snapshot(snap, progress, ct);
     }, ct);
+
+    /// <summary>Keeps only the candidates that now hold the value the user reads on screen.</summary>
+    public Task ApplyExactAsync(double value, IProgress<ScanProgress>? progress, CancellationToken ct) => Task.Run(() =>
+    {
+        if (_snapshot == null && _results.Count == 0) throw new InvalidOperationException("A descoberta ainda não começou.");
+        ForEachType(progress, ct, t =>
+        {
+            _results.TryGetValue(t, out var prev);
+            if (prev == null && _snapshot == null) return ScanResults.Empty(t, ScanOptions.SizeOf(t));
+            try { return _scanner.NextScan(ExactOptions(t, value), prev, prev == null ? _snapshot : null, null, ct); }
+            catch (ScanLimitException) { return prev ?? ScanResults.Empty(t, ScanOptions.SizeOf(t)); }
+        });
+        _snapshot = null;
+        StepsApplied++;
+    }, ct);
+
+    ScanOptions ExactOptions(ScanType t, double v) => new()
+    {
+        Type = t, Mode = ScanMode.Exact, Value = v, WritableOnly = WritableOnly, Aligned = t != ScanType.Byte,
+        FloatTolerance = Math.Max(0.001, Math.Abs(v - Math.Round(v)) < 1e-9 ? 0.5 : 0.05), MaxResults = 50_000_000
+    };
+
+    void ForEachType(IProgress<ScanProgress>? progress, CancellationToken ct, Func<ScanType, ScanResults> run)
+    {
+        int done = 0;
+        foreach (var t in Types)
+        {
+            ct.ThrowIfCancellationRequested();
+            _results[t] = run(t);
+            done++;
+            progress?.Report(new ScanProgress(done, Types.Count, _results[t].Count));
+        }
+    }
 
     /// <summary>Applies the given comparison to every type set (the first one compares against the snapshot).</summary>
     public Task ApplyAsync(ScanMode mode, IProgress<ScanProgress>? progress, CancellationToken ct) => Task.Run(() =>

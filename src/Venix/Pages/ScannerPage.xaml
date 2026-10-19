@@ -202,9 +202,10 @@
                         <StackPanel>
                             <TextBlock Text="O que você quer achar?" Style="{StaticResource T.Label}" Margin="4,0,0,6" />
                             <WrapPanel x:Name="KindChips" />
-                            <TextBlock Style="{StaticResource T.Body}" FontSize="12.5" TextWrapping="Wrap" Margin="4,2,0,12"
-                                       Text="Sem digitar números: o Venix tira uma foto da memória do jogo e, a cada ação que você faz, mantém só o que mudou do jeito esperado." />
+                            <TextBlock Style="{StaticResource T.Body}" FontSize="12.5" TextWrapping="Wrap" Margin="4,2,0,10"
+                                       Text="Se o jogo mostra o número na tela (dinheiro, vida, munição), digite o valor atual: a busca já começa só com o que vale isso. Se não souber, deixe em branco e o Venix compara a memória a cada ação sua." />
                             <StackPanel Orientation="Horizontal">
+                                <TextBox x:Name="KnownValue" Style="{StaticResource Input}" Width="210" Height="36" Padding="14,0" Tag="valor atual no jogo (opcional)" Margin="0,0,8,0" KeyDown="OnKnownValueKey" />
                                 <Button x:Name="StartBtn" Style="{StaticResource SmallPrimary}" Content="Começar" Click="OnStartDiscovery" />
                                 <Button x:Name="RestartBtn" Style="{StaticResource SmallBtn}" Content="Recomeçar" Click="OnRestartDiscovery" Visibility="Collapsed" />
                                 <Button x:Name="CancelAutoBtn" Style="{StaticResource SmallBtn}" Content="Cancelar" Click="OnCancelScan" Visibility="Collapsed" />
@@ -219,6 +220,11 @@
                                     <TextBlock x:Name="StepTitle" Style="{StaticResource T.H2}" Foreground="{DynamicResource Ink.Text}" Margin="0,4,0,0" />
                                     <TextBlock x:Name="StepText" FontSize="13" Foreground="{DynamicResource Ink.Text}" Opacity="0.8" TextWrapping="Wrap" Margin="0,6,0,14" LineHeight="20" />
                                     <WrapPanel x:Name="StepButtons" />
+                                    <StackPanel Orientation="Horizontal" Margin="0,4,0,0">
+                                        <TextBlock Text="Sabe o valor?" FontSize="12.5" Foreground="{DynamicResource Ink.Text}" Opacity="0.7" VerticalAlignment="Center" Margin="0,0,10,0" />
+                                        <TextBox x:Name="StepValue" Style="{StaticResource Input}" Width="150" Height="34" Padding="12,0" Tag="quanto está agora" KeyDown="OnStepValueKey" />
+                                        <Button Style="{StaticResource Btn.Frost}" Content="Filtrar pelo valor" Height="34" Padding="14,0" FontSize="12.5" Margin="8,0,0,0" Click="OnStepValue" />
+                                    </StackPanel>
                                 </StackPanel>
                             </Border>
 
