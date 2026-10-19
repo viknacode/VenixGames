@@ -157,7 +157,7 @@ public static class AsmParser
     static Operand ParseOperand(string text, int bitness, Func<string, long?> resolve, ref bool unresolved)
     {
         var t = text.Trim();
-        t = Regex.Replace(t, @"^(short|near)\s+", "", RegexOptions.IgnoreCase);
+        t = Regex.Replace(t, @"^(short|near|far|long)\s+", "", RegexOptions.IgnoreCase);
         int size = 0;
         var sm = SizeRx.Match(t);
         if (sm.Success)

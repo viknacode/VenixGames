@@ -396,6 +396,19 @@ public class AutoAssembler
             case Data d: return EncodeData(d, resolve);
             case Instr i:
             {
+                // CE's "jmp far target" is a 14-byte absolute jump (FF 25 00000000 + qword). Scripts count on
+                // that size when they pad the injection point, so it must not shrink to a 5-byte rel32 jump.
+                var far = Regex.Match(i.Text, @"^\s*jmp\s+far\s+(.+?)\s*$", RegexOptions.IgnoreCase);
+                if (far.Success && _gp.Bitness == 64)
+                {
+                    bool unres = false, symbolic = false;
+                    var target = AsmParser.EvalImmediate(far.Groups[1].Value, resolve, ref unres, ref symbolic);
+                    if (unres) throw new AutoAssemblerException($"Linha {i.Line}: símbolo desconhecido em \"{i.Text}\"");
+                    var far14 = new byte[14];
+                    far14[0] = 0xFF; far14[1] = 0x25; // jmp qword ptr [rip+0]
+                    BitConverter.TryWriteBytes(far14.AsSpan(6), (ulong)target);
+                    return far14;
+                }
                 var instr = AsmParser.Build(i.Text, _gp.Bitness, ip, resolve, out var unresolved);
                 if (unresolved) throw new AutoAssemblerException($"Linha {i.Line}: símbolo desconhecido em \"{i.Text}\"");
                 return AsmParser.Encode(instr, _gp.Bitness, ip);
