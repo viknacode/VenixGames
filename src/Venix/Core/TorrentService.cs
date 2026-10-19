@@ -20,6 +20,22 @@ public class TorrentService
         _timer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(1) };
         _timer.Tick += (_, _) => Poll();
         _timer.Start();
+        // Once startup settles, pick up where the last run stopped (like Steam/Hydra do).
+        Application.Current.Dispatcher.InvokeAsync(RestoreAsync, DispatcherPriority.ApplicationIdle);
+    }
+
+    /// <summary>
+    /// Downloads that were active when the app last closed are restarted; MonoTorrent's fast-resume data
+    /// (saved on a clean stop) makes them continue from where they were instead of re-hashing.
+    /// Explicitly paused ones stay paused.
+    /// </summary>
+    public async Task RestoreAsync()
+    {
+        foreach (var d in _store.Downloads.Where(d => d.IsActive && d.CompletedAt == null).ToList())
+        {
+            try { await RunAsync(d); }
+            catch (Exception ex) { d.Status = "error"; d.Error = ex.Message; }
+        }
     }
 
     /// <summary>
@@ -92,7 +108,7 @@ public class TorrentService
             SourceName = entry.SourceName, FileSize = entry.FileSize, SavePath = savePath
         };
         _store.Downloads.Insert(0, d);
-        _store.SaveSoon();
+        _store.Save(); // right away: a crash or kill in the next seconds must not lose the queue entry
         await RunAsync(d);
         return d;
     }

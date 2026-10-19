@@ -26,12 +26,15 @@ public class AppStore
     public static AppStore Load()
     {
         Directory.CreateDirectory(DataDir);
-        AppStore store;
-        try { store = JsonSerializer.Deserialize<AppStore>(File.ReadAllText(FilePath), Json) ?? new AppStore(); }
-        catch { store = new AppStore(); }
-        // Downloads that were running when the app closed come back paused
-        foreach (var d in store.Downloads.Where(d => d.IsActive)) d.Status = "paused";
-        return store;
+        if (!File.Exists(FilePath)) return new AppStore();
+        try { return JsonSerializer.Deserialize<AppStore>(File.ReadAllText(FilePath), Json) ?? new AppStore(); }
+        catch (Exception ex)
+        {
+            // Never silently start from scratch: keep the unreadable file for recovery and say why.
+            try { File.Copy(FilePath, FilePath + ".bad", true); } catch { }
+            try { File.AppendAllText(Path.Combine(DataDir, "error.log"), $"[{DateTime.Now:s}] venix.json ilegível, copiado para venix.json.bad: {ex}\n\n"); } catch { }
+            return new AppStore();
+        }
     }
 
     readonly object _saveLock = new();
