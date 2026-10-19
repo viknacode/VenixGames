@@ -18,9 +18,12 @@ public class CheatTable
     public string Key { get; set; } = "";      // normalized name with spaces
     public string Compact { get; set; } = "";  // normalized name without spaces
 
+    /// <summary>Ships inside Venix (cheats\ folder next to the exe) instead of coming from the repository.</summary>
+    public bool IsBundled => Path.StartsWith(CheatService.BundledPrefix, StringComparison.Ordinal);
+
     public string FileName => System.IO.Path.GetFileName(Path);
     public string SizeLabel => Format.Bytes(Size);
-    public string Meta => $"{FileName}  ·  {SizeLabel}";
+    public string Meta => IsBundled ? $"{FileName}  ·  {SizeLabel}  ·  incluída no Venix" : $"{FileName}  ·  {SizeLabel}";
 }
 
 /// <summary>One cheat inside a table, flattened for display.</summary>
@@ -69,7 +72,11 @@ public class CheatService
     public int GroupCount => _tables.Where(t => t.Group != null).Select(t => t.Group).Distinct().Count();
     public DateTime? IndexedAt { get; private set; }
 
-    public static string RepoUrl(CheatTable t) => $"https://github.com/{Repo}/blob/{Branch}/{EncodePath(t.Path)}";
+    /// <summary>Index path prefix of bundled tables ("venix/&lt;Game&gt;/file.ct"); never collides with repository paths ("tables/...").</summary>
+    public const string BundledPrefix = "venix/";
+    static readonly string BundledDir = System.IO.Path.Combine(AppContext.BaseDirectory, "cheats");
+
+    public static string? RepoUrl(CheatTable t) => t.IsBundled ? null : $"https://github.com/{Repo}/blob/{Branch}/{EncodePath(t.Path)}";
     static string RawUrl(CheatTable t) => $"https://raw.githubusercontent.com/{Repo}/{Branch}/{EncodePath(t.Path)}";
     static string EncodePath(string p) => string.Join('/', p.Split('/').Select(Uri.EscapeDataString));
 
@@ -104,7 +111,32 @@ public class CheatService
             }
         }
         IndexedAt = File.Exists(IndexFile) ? File.GetLastWriteTime(IndexFile) : null;
-        _tables = await Task.Run(() => Parse(json!));
+        _tables = await Task.Run(() => Bundled().Concat(Parse(json!)).ToList());
+    }
+
+    /// <summary>Tables shipped in cheats\&lt;Game&gt;\*.ct next to the exe. They come first and count as curated folders.</summary>
+    static List<CheatTable> Bundled()
+    {
+        var list = new List<CheatTable>();
+        if (!Directory.Exists(BundledDir)) return list;
+        foreach (var file in Directory.EnumerateFiles(BundledDir, "*.ct", SearchOption.AllDirectories).OrderBy(f => f, StringComparer.OrdinalIgnoreCase))
+        {
+            var rel = System.IO.Path.GetRelativePath(BundledDir, file).Replace('\\', '/');
+            var parts = rel.Split('/');
+            var group = parts.Length >= 2 ? parts[0] : NameFromFile(parts[^1]);
+            var key = Titles.Normalize(group);
+            if (key.Length == 0) continue;
+            list.Add(new CheatTable
+            {
+                Path = BundledPrefix + rel,
+                Size = new FileInfo(file).Length,
+                Name = group,
+                Group = group,
+                Key = key,
+                Compact = key.Replace(" ", "")
+            });
+        }
+        return list;
     }
 
     static List<CheatTable> Parse(string json)
@@ -186,13 +218,16 @@ public class CheatService
 
     /* ---------------------------------------------------------- files */
 
-    public string LocalPath(CheatTable t) => System.IO.Path.Combine(Dir, t.Path.Replace('/', '\\'));
+    public string LocalPath(CheatTable t) => t.IsBundled
+        ? System.IO.Path.Combine(BundledDir, t.Path[BundledPrefix.Length..].Replace('/', '\\'))
+        : System.IO.Path.Combine(Dir, t.Path.Replace('/', '\\'));
     public bool IsDownloaded(CheatTable t) => File.Exists(LocalPath(t));
 
     public async Task<string> DownloadAsync(CheatTable t)
     {
         var file = LocalPath(t);
         if (File.Exists(file)) return file;
+        if (t.IsBundled) throw new FileNotFoundException("Tabela incluída não encontrada ao lado do Venix.exe.", file);
         Directory.CreateDirectory(System.IO.Path.GetDirectoryName(file)!);
         var bytes = await _http.GetByteArrayAsync(RawUrl(t));
         await File.WriteAllBytesAsync(file, bytes);

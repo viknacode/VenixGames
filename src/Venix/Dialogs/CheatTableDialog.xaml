@@ -66,7 +66,7 @@
                     </StackPanel>
                     <Grid>
                         <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                            <Button Style="{StaticResource Btn.Link}" Content="Ver no GitHub" Click="OnGithub" />
+                            <Button x:Name="GithubBtn" Style="{StaticResource Btn.Link}" Content="Ver no GitHub" Click="OnGithub" />
                             <Button Style="{StaticResource Btn.Link}" Content="Abrir pasta" Click="OnFolder" Margin="18,0,0,0" />
                         </StackPanel>
                         <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">

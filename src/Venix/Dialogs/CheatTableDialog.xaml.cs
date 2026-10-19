@@ -18,7 +18,8 @@ public partial class CheatTableDialog : UserControl
         _table = table;
         _target = forGame;
         NameText.Text = table.Name;
-        FileText.Text = $"{table.Path}  ·  {table.SizeLabel}";
+        FileText.Text = table.IsBundled ? $"{table.FileName}  ·  {table.SizeLabel}  ·  incluída no Venix" : $"{table.Path}  ·  {table.SizeLabel}";
+        GithubBtn.Visibility = table.IsBundled ? Visibility.Collapsed : Visibility.Visible;
         BuildLibraryChips();
         Loaded += async (_, _) => await LoadDetails();
     }
@@ -100,7 +101,10 @@ public partial class CheatTableDialog : UserControl
         catch (Exception ex) { MainWindow.Instance.Toast(ex.Message, true); }
     }
 
-    void OnGithub(object sender, RoutedEventArgs e) => Process.Start(new ProcessStartInfo(CheatService.RepoUrl(_table)) { UseShellExecute = true });
+    void OnGithub(object sender, RoutedEventArgs e)
+    {
+        if (CheatService.RepoUrl(_table) is { } url) Process.Start(new ProcessStartInfo(url) { UseShellExecute = true });
+    }
 
     void OnClose(object sender, RoutedEventArgs e) => MainWindow.Instance.CloseModal();
 }

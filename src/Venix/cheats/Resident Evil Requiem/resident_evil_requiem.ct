@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<CheatTable CheatEngineTableVersion="45">
+  <CheatEntries>
+    <CheatEntry>
+      <ID>27</ID>
+      <Description>"No Reload"</Description>
+      <VariableType>Auto Assembler Script</VariableType>
+      <AssemblerScript>[ENABLE]
+
+aobscanmodule(nrlad,re9.exe,41 8B 6F 24 89 C1 29 E9 41 89 EE 44 0F 4C F0) // should be unique
+alloc(newmem,$1000)
+
+label(code)
+label(return)
+
+newmem:
+  mov ebp, [r15+24]
+  mov [rdx+20], ebp
+
+code:
+  mov ebp, [r15+24]
+  mov ecx, eax
+  sub ecx, ebp
+  mov r14d, ebp
+  cmovl r14d, eax
+  jmp return
+
+nrlad:
+  jmp far newmem
+  nop
+return:
+registersymbol(nrlad)
+
+[DISABLE]
+
+nrlad:
+  db 41 8B 6F 24 89 C1 29 E9 41 89 EE 44 0F 4C F0
+
+unregistersymbol(nrlad)
+dealloc(newmem)
+
+</AssemblerScript>
+      <Hotkeys>
+        <Hotkey>
+          <Action>Toggle Activation</Action>
+          <Keys>
+            <Key>100</Key>
+          </Keys>
+          <ID>0</ID>
+        </Hotkey>
+      </Hotkeys>
+    </CheatEntry>
+  </CheatEntries>
+  <UserdefinedSymbols/>
+</CheatTable>

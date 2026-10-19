@@ -22,6 +22,11 @@
   </ItemGroup>
 
   <ItemGroup>
+    <!-- tabelas de cheats incluídas no Venix: copiadas para cheats\<Jogo>\*.ct ao lado do exe -->
+    <None Include="cheats\**\*.ct" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Resource Include="Assets\venix.ico" />
     <Resource Include="Assets\pad-xbox.png" />
     <Resource Include="Assets\pad-playstation.png" />
