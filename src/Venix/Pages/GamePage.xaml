@@ -205,6 +205,15 @@
                                 </StackPanel>
                             </Border>
 
+                            <!-- cheats the user found with the memory scanner (profile per game) -->
+                            <Border CornerRadius="18" Padding="14,12" Margin="0,10,0,0" Background="{DynamicResource Glass.Soft}" BorderBrush="{DynamicResource Line}" BorderThickness="1">
+                                <StackPanel>
+                                    <TextBlock Text="Meus cheats · scanner" FontSize="11.5" Foreground="{DynamicResource Text.3}" />
+                                    <TextBlock x:Name="MyCheatsText" FontSize="13" Foreground="{DynamicResource Text}" TextWrapping="Wrap" Margin="0,2,0,10" />
+                                    <Button x:Name="MyCheatsBtn" Style="{StaticResource Btn}" Content="Criar cheats" Height="34" Padding="14,0" FontSize="12.5" HorizontalAlignment="Left" Click="OnScanner" />
+                                </StackPanel>
+                            </Border>
+
                             <ItemsControl x:Name="CheatSuggestions" Margin="0,10,0,0">
                                 <ItemsControl.ItemTemplate>
                                     <DataTemplate DataType="core:CheatTable">

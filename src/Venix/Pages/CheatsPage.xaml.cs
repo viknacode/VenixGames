@@ -34,6 +34,7 @@ public partial class CheatsPage : UserControl, IPage
         Loaded += async (_, _) =>
         {
             UpdateRun();
+            BuildProfiles();
             if (_ready) return;
             try { await Hub.Cheats.LoadAsync(); }
             catch (Exception ex) { Status.Text = "Não foi possível carregar o índice: " + ex.Message; return; }
@@ -111,6 +112,49 @@ public partial class CheatsPage : UserControl, IPage
     {
         var s = TrainerHub.All.FirstOrDefault(x => x.IsAttached) ?? TrainerHub.All.FirstOrDefault();
         if (s != null) MainWindow.Instance.Push(new TrainerPage(s));
+    }
+
+    /* ---------------------------------------------------------- memory scanner */
+
+    /// <summary>Chips with the games that already have cheats found by the scanner; click opens them.</summary>
+    void BuildProfiles()
+    {
+        Profiles.Children.Clear();
+        foreach (var p in CheatProfiles.All().Where(p => p.Cheats.Count > 0).OrderByDescending(p => p.UpdatedAt))
+        {
+            var b = new Button
+            {
+                Style = (Style)FindResource("Btn"), Height = 30, Padding = new Thickness(13, 0, 13, 0), FontSize = 12, Margin = new Thickness(0, 0, 8, 8),
+                Content = $"{p.Title}  ·  {p.Cheats.Count}", Tag = p, ToolTip = $"Abrir os cheats salvos de {p.Title}"
+            };
+            b.Click += (_, _) =>
+            {
+                var prof = (CheatProfile)b.Tag;
+                var g = Hub.Store.Find(prof.GameId);
+                MainWindow.Instance.Push(new ScannerPage(TrainerHub.OpenProfile(prof.GameId, prof.Title, g?.Exe)));
+            };
+            Profiles.Children.Add(b);
+        }
+    }
+
+    /// <summary>Opens the scanner for the game this page was opened from, or for a process the user picks.</summary>
+    void OnScanner(object sender, RoutedEventArgs e)
+    {
+        if (_forGame != null)
+        {
+            MainWindow.Instance.Push(new ScannerPage(TrainerHub.OpenProfile(_forGame.Id, _forGame.Title, _forGame.Exe)));
+            return;
+        }
+        MainWindow.Instance.ShowModal(new ProcessPickerDialog(p =>
+        {
+            var exe = p.ProcessName + ".exe";
+            // a library game with this executable gets its own profile; anything else is keyed by the exe name
+            var g = Hub.Store.Library.FirstOrDefault(x => x.Exe != null && string.Equals(System.IO.Path.GetFileName(x.Exe), exe, StringComparison.OrdinalIgnoreCase));
+            var session = g != null ? TrainerHub.OpenProfile(g.Id, g.Title, g.Exe) : TrainerHub.OpenProfile("exe-" + p.ProcessName.ToLowerInvariant(), p.ProcessName, exe);
+            var page = new ScannerPage(session);
+            MainWindow.Instance.Push(page);
+            page.AttachTo(p);
+        }));
     }
 
     void OnTable(object sender, RoutedEventArgs e)

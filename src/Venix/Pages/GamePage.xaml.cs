@@ -7,6 +7,7 @@ using System.Windows.Media;
 using System.Windows.Media.Animation;
 using Venix.Core;
 using Venix.Dialogs;
+using Venix.Trainer;
 
 namespace Venix.Pages;
 
@@ -215,6 +216,11 @@ public partial class GamePage : UserControl, IPage
                 // the trainer page attaches by itself as soon as the game process shows up
                 await OpenTrainer(t);
             }
+            else if (CheatProfiles.Count(g.Id) > 0)
+            {
+                // cheats found with the scanner: the page reconnects on its own and offers to activate them
+                OpenScanner();
+            }
         }
         catch (Exception ex) { MainWindow.Instance.Toast(ex.Message, true); }
     }
@@ -268,6 +274,7 @@ public partial class GamePage : UserControl, IPage
         catch { CheatCount.Text = "—"; CheatEmpty.Visibility = Visibility.Visible; CheatEmpty.Text = "Índice de cheats indisponível no momento."; return; }
         _cheats = Hub.Cheats.FindForGame(_name);
         _ownCheats = Hub.Cheats.FindForGame(_name, minScore: 2);
+        UpdateMyCheats();
         CheatCount.Text = _cheats.Count.ToString();
         CheatSuggestions.ItemsSource = _cheats.Take(3).ToList();
         CheatEmpty.Visibility = _cheats.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
@@ -283,11 +290,39 @@ public partial class GamePage : UserControl, IPage
         UpdateHeroCheats(linked);
     }
 
-    /// <summary>Hero bar "Cheats · N" button: only when this game has a table in the index or one linked to it.</summary>
+    int _myCheats;
+
+    /// <summary>Cheats the user discovered with the memory scanner for this game (profile on disk).</summary>
+    void UpdateMyCheats()
+    {
+        _myCheats = CheatProfiles.Count(_id);
+        MyCheatsText.Text = _myCheats == 0
+            ? "Nenhum ainda. Ache vida, dinheiro ou munição na memória do jogo e salve como cheat, sem precisar de tabela."
+            : _myCheats == 1 ? "1 cheat salvo. O Venix reconecta e ativa quando o jogo abrir." : $"{_myCheats} cheats salvos. O Venix reconecta e ativa quando o jogo abrir.";
+        MyCheatsBtn.Content = _myCheats == 0 ? "Criar cheats" : "Abrir meus cheats";
+    }
+
+    void OnScanner(object sender, RoutedEventArgs e) => OpenScanner();
+
+    void OpenScanner()
+    {
+        var g = Hub.Store.Find(_id);
+        var page = new ScannerPage(Venix.Trainer.TrainerHub.OpenProfile(_id, _name, g?.Exe));
+        page.Unloaded += (_, _) => { UpdateMyCheats(); UpdateHeroCheats(LinkedTable()); };
+        MainWindow.Instance.Push(page);
+    }
+
+    /// <summary>Hero bar "Cheats · N" button: when this game has a table in the index, one linked to it, or cheats found with the scanner.</summary>
     void UpdateHeroCheats(CheatTable? linked)
     {
-        var has = linked != null || _ownCheats.Count > 0;
+        var has = linked != null || _ownCheats.Count > 0 || _myCheats > 0;
         CheatsBtn.Visibility = has ? Visibility.Visible : Visibility.Collapsed;
+        if (_myCheats > 0 && linked == null && _ownCheats.Count == 0)
+        {
+            CheatsBtnText.Text = $"Cheats  ·  {_myCheats}";
+            CheatsBtn.ToolTip = _myCheats == 1 ? "Abrir o cheat que você salvou para este jogo" : $"Abrir os {_myCheats} cheats que você salvou para este jogo";
+            return;
+        }
         if (!has) return;
         CheatsBtnText.Text = _ownCheats.Count > 0 ? $"Cheats  ·  {_ownCheats.Count}" : "Cheats";
         CheatsBtn.ToolTip = linked != null
@@ -299,6 +334,7 @@ public partial class GamePage : UserControl, IPage
     {
         // a linked table goes straight to the trainer; otherwise show this game's tables
         if (LinkedTable() is { } linked) { await OpenTrainer(linked); return; }
+        if (_ownCheats.Count == 0 && _myCheats > 0) { OpenScanner(); return; }
         if (_ownCheats.Count == 1) { OpenTableDialog(_ownCheats[0]); return; }
         OnAllCheats(sender, e);
     }

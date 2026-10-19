@@ -1,0 +1,352 @@
+<UserControl x:Class="Venix.Pages.ScannerPage"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:core="clr-namespace:Venix.Core"
+             xmlns:tr="clr-namespace:Venix.Trainer"
+             xmlns:pg="clr-namespace:Venix.Pages">
+    <UserControl.Resources>
+        <Style x:Key="Mono" TargetType="TextBlock">
+            <Setter Property="FontFamily" Value="Cascadia Mono, Consolas" />
+            <Setter Property="FontSize" Value="12.5" />
+            <Setter Property="Foreground" Value="{DynamicResource Text}" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+        </Style>
+        <Style x:Key="SmallBtn" TargetType="Button" BasedOn="{StaticResource Btn}">
+            <Setter Property="Height" Value="34" />
+            <Setter Property="Padding" Value="14,0" />
+            <Setter Property="FontSize" Value="12.5" />
+            <Setter Property="Margin" Value="0,0,8,0" />
+        </Style>
+        <Style x:Key="SmallPrimary" TargetType="Button" BasedOn="{StaticResource Btn.Primary}">
+            <Setter Property="Height" Value="34" />
+            <Setter Property="Padding" Value="16,0" />
+            <Setter Property="FontSize" Value="12.5" />
+            <Setter Property="Margin" Value="0,0,8,0" />
+        </Style>
+        <Style x:Key="PlainItem" TargetType="ListBoxItem">
+            <Setter Property="FocusVisualStyle" Value="{x:Null}" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ListBoxItem">
+                        <Border x:Name="bd" Background="Transparent" CornerRadius="12" Padding="10,5" Margin="0,1">
+                            <ContentPresenter />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True"><Setter TargetName="bd" Property="Background" Value="{DynamicResource Glass.Soft}" /></Trigger>
+                            <Trigger Property="IsSelected" Value="True"><Setter TargetName="bd" Property="Background" Value="{DynamicResource Glass.Strong}" /></Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </UserControl.Resources>
+
+    <Grid Margin="28,8,28,24">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <!-- ============================================ header -->
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="1.15*" />
+                <ColumnDefinition Width="16" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+
+            <Border Style="{StaticResource Glass}" Background="{DynamicResource Ink}" BorderThickness="0" Padding="24,20">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <StackPanel VerticalAlignment="Center">
+                        <TextBlock Text="Processo do jogo" Style="{StaticResource T.Label}" Foreground="{DynamicResource Ink.Text}" Opacity="0.6" />
+                        <StackPanel Orientation="Horizontal" Margin="0,6,0,0">
+                            <Ellipse x:Name="Dot" Width="10" Height="10" Margin="0,0,10,0" VerticalAlignment="Center" />
+                            <TextBlock x:Name="StateText" Style="{StaticResource T.H2}" Foreground="{DynamicResource Ink.Text}" />
+                        </StackPanel>
+                        <TextBlock x:Name="StatusText" FontSize="12.5" Foreground="{DynamicResource Ink.Text}" Opacity="0.65" Margin="0,6,0,0" TextWrapping="Wrap" />
+                    </StackPanel>
+                    <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                        <Button x:Name="PickBtn" Style="{StaticResource Btn}" Content="Escolher processo" Click="OnPick" Height="38" Padding="16,0" FontSize="12.5" />
+                        <Button x:Name="DetachBtn" Style="{StaticResource Btn}" Content="Desconectar" Click="OnDetach" Height="38" Padding="16,0" FontSize="12.5" Margin="8,0,0,0" />
+                    </StackPanel>
+                </Grid>
+            </Border>
+
+            <Border Grid.Column="2" Style="{StaticResource Glass}" Padding="24,20">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <Border Width="48" Height="48" CornerRadius="16" Background="{DynamicResource Glass.Strong}" VerticalAlignment="Top">
+                        <TextBlock Style="{StaticResource T.Icon}" Text="{x:Static core:Icons.Search}" FontSize="18" Foreground="{DynamicResource Text}" />
+                    </Border>
+                    <StackPanel Grid.Column="1" Margin="16,0,0,0">
+                        <TextBlock x:Name="GameTitle" Style="{StaticResource T.H3}" TextTrimming="CharacterEllipsis" />
+                        <WrapPanel x:Name="Counts" Margin="0,8,0,0" />
+                        <StackPanel Orientation="Horizontal" Margin="0,4,0,0">
+                            <Button x:Name="ActivateAllBtn" Style="{StaticResource SmallPrimary}" Content="Ativar cheats salvos" Click="OnActivateAll" Visibility="Collapsed" />
+                            <Button Style="{StaticResource Btn.Link}" Content="Fechar scanner" Click="OnCloseSession" VerticalAlignment="Center" />
+                        </StackPanel>
+                    </StackPanel>
+                </Grid>
+            </Border>
+        </Grid>
+
+        <TextBlock Grid.Row="1" x:Name="Notice" Style="{StaticResource T.Label}" Margin="8,16,8,6" TextWrapping="Wrap"
+                   Text="Somente para jogos offline / single-player. O Venix lê e altera a memória do jogo diretamente; nunca use em jogos online." />
+
+        <!-- ============================================ body -->
+        <Grid Grid.Row="2">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="1.6*" />
+                <ColumnDefinition Width="16" />
+                <ColumnDefinition Width="*" MinWidth="320" />
+            </Grid.ColumnDefinitions>
+
+            <!-- scanner / discovery -->
+            <Border Style="{StaticResource Glass}" Padding="18" CornerRadius="26">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+
+                    <Border Style="{StaticResource Seg.Host}" HorizontalAlignment="Left">
+                        <StackPanel Orientation="Horizontal">
+                            <RadioButton Style="{StaticResource Seg}" Content="Descoberta automática" GroupName="smode" IsChecked="True" Checked="OnPanel" Tag="auto" />
+                            <RadioButton Style="{StaticResource Seg}" Content="Busca manual" GroupName="smode" Checked="OnPanel" Tag="manual" />
+                        </StackPanel>
+                    </Border>
+
+                    <!-- ===== manual scan ===== -->
+                    <Grid Grid.Row="1" x:Name="ManualPanel" Margin="0,16,0,0" Visibility="Collapsed">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="*" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+                        <StackPanel>
+                            <TextBlock Text="Tipo do valor" Style="{StaticResource T.Label}" Margin="4,0,0,6" />
+                            <WrapPanel x:Name="TypeChips" />
+                            <TextBlock Text="Modo de busca" Style="{StaticResource T.Label}" Margin="4,6,0,6" />
+                            <WrapPanel x:Name="ModeChips" />
+                            <Grid Margin="0,4,0,0">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+                                <TextBox x:Name="Value1" Style="{StaticResource Input}" Width="170" Height="38" Padding="14,0" Tag="valor" KeyDown="OnValueKey" />
+                                <TextBox x:Name="Value2" Style="{StaticResource Input}" Width="150" Height="38" Padding="14,0" Tag="até" Margin="8,0,0,0" KeyDown="OnValueKey" Grid.Column="1" Visibility="Collapsed" />
+                                <StackPanel Grid.Column="2" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
+                                    <CheckBox x:Name="WritableOnly" Style="{StaticResource Switch}" Content="Só memória gravável" IsChecked="True" FontSize="12.5" Margin="0,0,18,0" />
+                                    <CheckBox x:Name="AlignedChk" Style="{StaticResource Switch}" Content="Alinhado" IsChecked="True" FontSize="12.5" ToolTip="Pula endereços não alinhados: bem mais rápido e acha quase tudo" />
+                                </StackPanel>
+                            </Grid>
+                            <Grid Margin="0,14,0,0">
+                                <StackPanel Orientation="Horizontal">
+                                    <Button x:Name="FirstScanBtn" Style="{StaticResource SmallPrimary}" Content="Primeiro scan" Click="OnFirstScan" />
+                                    <Button x:Name="NextScanBtn" Style="{StaticResource SmallBtn}" Content="Próximo scan" Click="OnNextScan" IsEnabled="False" />
+                                    <Button x:Name="NewScanBtn" Style="{StaticResource SmallBtn}" Content="Novo scan" Click="OnNewScan" IsEnabled="False" />
+                                    <Button x:Name="CancelScanBtn" Style="{StaticResource SmallBtn}" Content="Cancelar" Click="OnCancelScan" Visibility="Collapsed" />
+                                </StackPanel>
+                                <TextBlock x:Name="ResultCount" Style="{StaticResource T.Label}" HorizontalAlignment="Right" VerticalAlignment="Center" FontSize="12.5" />
+                            </Grid>
+                            <ProgressBar x:Name="ScanProgress" Style="{StaticResource Progress}" Margin="0,12,0,0" Visibility="Collapsed" />
+                            <Grid Margin="10,14,10,4">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="170" />
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="40" />
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Text="Endereço" Style="{StaticResource T.Label}" />
+                                <TextBlock Grid.Column="1" Text="Valor atual" Style="{StaticResource T.Label}" />
+                                <TextBlock Grid.Column="2" Text="Anterior" Style="{StaticResource T.Label}" />
+                            </Grid>
+                        </StackPanel>
+
+                        <ListBox Grid.Row="1" x:Name="ResultList" Background="Transparent" BorderThickness="0" ItemContainerStyle="{StaticResource PlainItem}"
+                                 VirtualizingPanel.IsVirtualizing="True" VirtualizingPanel.VirtualizationMode="Recycling" ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                                 MouseDoubleClick="OnResultDouble">
+                            <ListBox.ItemTemplate>
+                                <DataTemplate DataType="pg:ScanRow">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="170" />
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="40" />
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock Text="{Binding AddressLabel}" Style="{StaticResource Mono}" />
+                                        <TextBlock Grid.Column="1" Text="{Binding Current}" Style="{StaticResource Mono}" />
+                                        <TextBlock Grid.Column="2" Text="{Binding Previous}" Style="{StaticResource Mono}" Foreground="{DynamicResource Text.3}" />
+                                        <Button Grid.Column="3" Style="{StaticResource Btn.Circle.Small}" Content="{x:Static core:Icons.Add}" Click="OnAddResult" ToolTip="Adicionar aos cheats" HorizontalAlignment="Right" />
+                                    </Grid>
+                                </DataTemplate>
+                            </ListBox.ItemTemplate>
+                        </ListBox>
+                        <TextBlock Grid.Row="1" x:Name="ResultEmpty" Style="{StaticResource T.Body}" HorizontalAlignment="Center" VerticalAlignment="Center" TextAlignment="Center" TextWrapping="Wrap" MaxWidth="420"
+                                   Text="Digite o valor que aparece no jogo (vida, dinheiro, munição…) e clique em Primeiro scan. Mude o valor no jogo e refine com Próximo scan até sobrar pouco." />
+                        <TextBlock Grid.Row="2" x:Name="ResultFooter" Style="{StaticResource T.Label}" Margin="10,8,0,0" />
+                    </Grid>
+
+                    <!-- ===== smart discovery ===== -->
+                    <ScrollViewer Grid.Row="1" x:Name="AutoPanel" Margin="0,16,0,0" VerticalScrollBarVisibility="Auto">
+                        <StackPanel>
+                            <TextBlock Text="O que você quer achar?" Style="{StaticResource T.Label}" Margin="4,0,0,6" />
+                            <WrapPanel x:Name="KindChips" />
+                            <TextBlock Style="{StaticResource T.Body}" FontSize="12.5" TextWrapping="Wrap" Margin="4,2,0,12"
+                                       Text="Sem digitar números: o Venix tira uma foto da memória do jogo e, a cada ação que você faz, mantém só o que mudou do jeito esperado." />
+                            <StackPanel Orientation="Horizontal">
+                                <Button x:Name="StartBtn" Style="{StaticResource SmallPrimary}" Content="Começar" Click="OnStartDiscovery" />
+                                <Button x:Name="RestartBtn" Style="{StaticResource SmallBtn}" Content="Recomeçar" Click="OnRestartDiscovery" Visibility="Collapsed" />
+                                <Button x:Name="CancelAutoBtn" Style="{StaticResource SmallBtn}" Content="Cancelar" Click="OnCancelScan" Visibility="Collapsed" />
+                            </StackPanel>
+                            <ProgressBar x:Name="AutoProgress" Style="{StaticResource Progress}" Margin="0,12,0,0" Visibility="Collapsed" />
+                            <TextBlock x:Name="AutoStatus" Style="{StaticResource T.Label}" Margin="4,10,0,0" />
+
+                            <!-- step card -->
+                            <Border x:Name="StepCard" CornerRadius="20" Padding="20,16" Margin="0,14,0,0" Background="{DynamicResource Ink}" Visibility="Collapsed">
+                                <StackPanel>
+                                    <TextBlock x:Name="StepLabel" FontSize="11.5" Foreground="{DynamicResource Ink.Text}" Opacity="0.6" />
+                                    <TextBlock x:Name="StepTitle" Style="{StaticResource T.H2}" Foreground="{DynamicResource Ink.Text}" Margin="0,4,0,0" />
+                                    <TextBlock x:Name="StepText" FontSize="13" Foreground="{DynamicResource Ink.Text}" Opacity="0.8" TextWrapping="Wrap" Margin="0,6,0,14" LineHeight="20" />
+                                    <WrapPanel x:Name="StepButtons" />
+                                </StackPanel>
+                            </Border>
+
+                            <!-- candidates -->
+                            <StackPanel x:Name="CandidatePanel" Margin="0,16,0,0" Visibility="Collapsed">
+                                <Grid>
+                                    <TextBlock Text="Melhores candidatos" Style="{StaticResource T.H3}" />
+                                    <TextBlock x:Name="CandidateInfo" Style="{StaticResource T.Label}" HorizontalAlignment="Right" VerticalAlignment="Bottom" />
+                                </Grid>
+                                <TextBlock Style="{StaticResource T.Body}" FontSize="12.5" TextWrapping="Wrap" Margin="0,4,0,10"
+                                           Text="Clique em Testar: o Venix altera o valor no jogo e você confere na tela se foi ele." />
+                                <ItemsControl x:Name="CandidateList">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate DataType="tr:DiscoveryCandidate">
+                                            <Border CornerRadius="16" Padding="14,10" Margin="0,0,0,6" Background="{DynamicResource Glass.Soft}" BorderBrush="{DynamicResource Line}" BorderThickness="1">
+                                                <Grid>
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="Auto" />
+                                                        <ColumnDefinition Width="*" />
+                                                        <ColumnDefinition Width="Auto" />
+                                                    </Grid.ColumnDefinitions>
+                                                    <Border Width="46" Height="46" CornerRadius="15" Background="{DynamicResource Ink}" VerticalAlignment="Center">
+                                                        <TextBlock Text="{Binding Percent, StringFormat={}{0}%}" FontSize="12.5" FontWeight="SemiBold" Foreground="{DynamicResource Ink.Text}" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                                    </Border>
+                                                    <StackPanel Grid.Column="1" Margin="14,0,10,0" VerticalAlignment="Center">
+                                                        <StackPanel Orientation="Horizontal">
+                                                            <TextBlock Text="{Binding ValueLabel}" FontFamily="Cascadia Mono, Consolas" FontSize="15" Foreground="{DynamicResource Text}" />
+                                                            <TextBlock Text="{Binding TypeLabel}" FontSize="12" Foreground="{DynamicResource Text.3}" Margin="10,0,0,0" VerticalAlignment="Center" />
+                                                            <TextBlock Text="{Binding AddressLabel}" FontFamily="Cascadia Mono, Consolas" FontSize="11.5" Foreground="{DynamicResource Text.3}" Margin="10,0,0,0" VerticalAlignment="Center" />
+                                                        </StackPanel>
+                                                        <TextBlock Text="{Binding Reasons}" FontSize="11.5" Foreground="{DynamicResource Text.3}" Margin="0,2,0,0" TextTrimming="CharacterEllipsis" />
+                                                    </StackPanel>
+                                                    <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
+                                                        <Button Style="{StaticResource SmallPrimary}" Content="Testar" Click="OnTestCandidate" />
+                                                        <Button Style="{StaticResource SmallBtn}" Content="Adicionar" Click="OnAddCandidate" Margin="0" />
+                                                    </StackPanel>
+                                                </Grid>
+                                            </Border>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </StackPanel>
+
+                            <!-- test confirmation -->
+                            <Border x:Name="TestCard" CornerRadius="20" Padding="20,16" Margin="0,12,0,0" Background="{DynamicResource Glass.Strong}" BorderBrush="{DynamicResource Line.Strong}" BorderThickness="1" Visibility="Collapsed">
+                                <StackPanel>
+                                    <TextBlock x:Name="TestText" Style="{StaticResource T.Body}" TextWrapping="Wrap" />
+                                    <StackPanel Orientation="Horizontal" Margin="0,12,0,0">
+                                        <Button Style="{StaticResource SmallPrimary}" Content="Sim, funcionou" Click="OnTestYes" />
+                                        <Button Style="{StaticResource SmallBtn}" Content="Não, foi outro" Click="OnTestNo" />
+                                    </StackPanel>
+                                </StackPanel>
+                            </Border>
+                        </StackPanel>
+                    </ScrollViewer>
+                </Grid>
+            </Border>
+
+            <!-- discovered cheats -->
+            <Border Grid.Column="2" Style="{StaticResource Glass}" Padding="18" CornerRadius="26">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+                    <Grid>
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Style="{StaticResource T.Icon}" Text="{x:Static core:Icons.Cheat}" FontSize="15" Foreground="{DynamicResource Text}" Margin="0,2,10,0" />
+                            <TextBlock Text="Meus cheats" Style="{StaticResource T.H2}" />
+                        </StackPanel>
+                        <TextBlock x:Name="CheatInfo" Style="{StaticResource T.Label}" HorizontalAlignment="Right" VerticalAlignment="Bottom" />
+                    </Grid>
+                    <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" Margin="0,12,0,0">
+                        <StackPanel>
+                            <TextBlock x:Name="CheatEmpty" Style="{StaticResource T.Body}" FontSize="12.5" TextWrapping="Wrap" Margin="4,8,4,0"
+                                       Text="Nada ainda. Ache um valor com a descoberta automática ou a busca manual e adicione aqui: o Venix salva no perfil do jogo e reconecta na próxima vez." />
+                            <ItemsControl x:Name="CheatList">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate DataType="tr:TrainerEntry">
+                                        <Border x:Name="row" CornerRadius="16" Padding="12,10" Margin="0,0,0,6" Background="{DynamicResource Glass.Soft}" BorderBrush="{DynamicResource Line}" BorderThickness="1">
+                                            <StackPanel>
+                                                <Grid>
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="*" />
+                                                        <ColumnDefinition Width="Auto" />
+                                                    </Grid.ColumnDefinitions>
+                                                    <StackPanel VerticalAlignment="Center">
+                                                        <TextBlock Text="{Binding Description}" FontSize="13.5" FontWeight="Medium" Foreground="{DynamicResource Text}" TextTrimming="CharacterEllipsis" />
+                                                        <StackPanel Orientation="Horizontal" Margin="0,2,0,0">
+                                                            <TextBlock Text="{Binding TypeLabel}" FontSize="11.5" Foreground="{DynamicResource Text.3}" />
+                                                            <TextBlock Text="{Binding HowLabel}" FontSize="11.5" Foreground="{DynamicResource Text.3}" Margin="8,0,0,0" />
+                                                            <TextBlock Text="{Binding StatusText}" FontSize="11.5" Foreground="{DynamicResource Success}" Margin="8,0,0,0" FontWeight="SemiBold" />
+                                                        </StackPanel>
+                                                    </StackPanel>
+                                                    <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                                                        <TextBlock Text="Congelar" FontSize="11.5" Foreground="{DynamicResource Text.3}" VerticalAlignment="Center" Margin="0,0,8,0" />
+                                                        <CheckBox Style="{StaticResource Switch}" IsChecked="{Binding IsActive, Mode=OneWay}" Click="OnToggle" />
+                                                    </StackPanel>
+                                                </Grid>
+                                                <Grid Margin="0,8,0,0">
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="Auto" />
+                                                        <ColumnDefinition Width="*" />
+                                                        <ColumnDefinition Width="Auto" />
+                                                    </Grid.ColumnDefinitions>
+                                                    <TextBlock Text="{Binding Value}" FontFamily="Cascadia Mono, Consolas" FontSize="14" Foreground="{DynamicResource Text}" VerticalAlignment="Center" MinWidth="60" Margin="0,0,12,0" />
+                                                    <TextBox Grid.Column="1" Style="{StaticResource Input}" Height="32" Padding="12,0" FontSize="12.5" Tag="novo valor" KeyDown="OnCheatValueKey" MaxWidth="160" HorizontalAlignment="Left" />
+                                                    <StackPanel Grid.Column="2" Orientation="Horizontal">
+                                                        <Button Style="{StaticResource Btn.Circle.Small}" Content="{x:Static core:Icons.Link}" Click="OnFindPointer" ToolTip="Procurar ponteiro (para o cheat sobreviver ao reinício do jogo)" Margin="0,0,6,0" />
+                                                        <Button Style="{StaticResource Btn.Circle.Small}" Content="{x:Static core:Icons.Delete}" Click="OnRemoveCheat" ToolTip="Remover" />
+                                                    </StackPanel>
+                                                </Grid>
+                                                <TextBlock Text="{Binding Error}" FontSize="12" Foreground="{DynamicResource Danger}" TextWrapping="Wrap" Margin="0,6,0,0"
+                                                           Visibility="{Binding HasError, Converter={x:Static core:Conv.Visible}}" />
+                                            </StackPanel>
+                                        </Border>
+                                        <DataTemplate.Triggers>
+                                            <DataTrigger Binding="{Binding IsActive}" Value="True">
+                                                <Setter TargetName="row" Property="Background" Value="{DynamicResource Glass.Strong}" />
+                                            </DataTrigger>
+                                        </DataTemplate.Triggers>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </StackPanel>
+                    </ScrollViewer>
+                </Grid>
+            </Border>
+        </Grid>
+    </Grid>
+</UserControl>
