@@ -214,10 +214,14 @@ public sealed class DiscoveryEngine
                 if (IsFloat(type) && list.Any(o => !IsFloat(o.type) && IsRoundInt(o.value) && Math.Abs(value) < 1e-6)) continue; // denormal float = an int seen as float
                 if (priv) { s += 0.08; why.Add("memória do jogo"); }
                 if (isStatic) { s += 0.05; why.Add("endereço fixo"); }
-                if (neigh > 0) { s += Math.Min(0.15, 0.04 * neigh); why.Add(neigh == 1 ? "1 valor vizinho" : $"{neigh} valores vizinhos"); }
+                // a couple of neighbours hint at a player struct (health next to max health); a whole cluster moving
+                // together is usually allocator metadata or an array, not the value we want
+                if (neigh is >= 1 and <= 3) { s += 0.04 * neigh; why.Add(neigh == 1 ? "1 valor vizinho" : $"{neigh} valores vizinhos"); }
+                else if (neigh >= 6) { s -= 0.12; why.Add($"bloco de {neigh} valores mudando juntos"); }
+                if (value == 0 && Kind != DiscoveryKind.Ammo) s -= 0.1; // zero right now is rarely the stat the user just watched move
                 scored.Add(new DiscoveryCandidate
                 {
-                    Address = addr, Type = type, Value = value, Score = Math.Clamp(s, 0, 1),
+                    Address = addr, Type = type, Value = value, Score = s,
                     Reasons = string.Join(" · ", why), Static = isStatic
                 });
             }
