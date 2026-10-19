@@ -219,15 +219,36 @@ public class TorrentService
 
     public Task ResumeAsync(DownloadItem d) => RunAsync(d);
 
+    /// <summary>
+    /// The item leaves the queue immediately; stopping the torrent (which announces "stopped" to every
+    /// tracker, slow with ~100 of them) and deleting files run afterwards. Awaiting them first made the
+    /// first click look like a no-op, and a second click then hit the fast path.
+    /// </summary>
     public async Task RemoveAsync(DownloadItem d, bool deleteFiles)
     {
-        if (_managers.Remove(d.Id, out var m))
-        {
-            try { await m.StopAsync(); } catch { }
-            try { await Engine.RemoveAsync(m, deleteFiles ? RemoveMode.CacheDataAndDownloadedData : RemoveMode.CacheDataOnly); } catch { }
-        }
+        d.Status = "cancelling";
+        d.Speed = 0;
+        d.Eta = null;
         _store.Downloads.Remove(d);
         _store.SaveSoon();
+        if (!_managers.Remove(d.Id, out var m)) return;
+        try { await m.StopAsync(TimeSpan.FromSeconds(5)); } catch { }
+        try { await Engine.RemoveAsync(m, deleteFiles ? RemoveMode.CacheDataAndDownloadedData : RemoveMode.CacheDataOnly); } catch { }
+        if (deleteFiles) DeleteLeftovers(d, m);
+    }
+
+    /// <summary>MonoTorrent only deletes the files it knows about; drop the (now empty) torrent folder too.</summary>
+    static void DeleteLeftovers(DownloadItem d, TorrentManager m)
+    {
+        try
+        {
+            var name = m.Torrent?.Name ?? d.Name;
+            if (string.IsNullOrEmpty(name)) return;
+            var dir = Path.Combine(d.SavePath, name);
+            if (Directory.Exists(dir) && !Directory.EnumerateFiles(dir, "*", SearchOption.AllDirectories).Any())
+                Directory.Delete(dir, true);
+        }
+        catch { /* best effort */ }
     }
 
     public async Task ShutdownAsync()

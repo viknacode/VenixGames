@@ -174,6 +174,7 @@ public class DownloadItem : Observable
         "hashing" => "Verificando arquivos",
         "downloading" => "Baixando",
         "paused" => "Pausado",
+        "cancelling" => "Cancelando",
         "seeding" => "Semeando",
         "complete" => "Concluído",
         "error" => "Erro",
