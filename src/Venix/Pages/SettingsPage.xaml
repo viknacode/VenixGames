@@ -1,0 +1,280 @@
+<UserControl x:Class="Venix.Pages.SettingsPage"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:core="clr-namespace:Venix.Core">
+    <Grid Margin="28,8,28,28">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="240" />
+            <ColumnDefinition Width="20" />
+            <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
+
+        <!-- section nav -->
+        <Border Style="{StaticResource Glass}" Padding="12" CornerRadius="26" VerticalAlignment="Top">
+            <StackPanel>
+                <RadioButton x:Name="TabGeneral" Style="{StaticResource Nav}" Content="Geral" Tag="{x:Static core:Icons.Settings}" GroupName="st" Checked="OnTab" />
+                <RadioButton x:Name="TabSources" Style="{StaticResource Nav}" Content="Fontes de download" Tag="{x:Static core:Icons.Link}" GroupName="st" Checked="OnTab" />
+                <RadioButton x:Name="TabDownloads" Style="{StaticResource Nav}" Content="Downloads" Tag="{x:Static core:Icons.Download}" GroupName="st" Checked="OnTab" />
+                <RadioButton x:Name="TabGamepad" Style="{StaticResource Nav}" Content="Controle" Tag="{x:Static core:Icons.Game}" GroupName="st" Checked="OnTab" />
+                <RadioButton x:Name="TabAbout" Style="{StaticResource Nav}" Content="Sobre" Tag="{x:Static core:Icons.Info}" GroupName="st" Checked="OnTab" Margin="0" />
+            </StackPanel>
+        </Border>
+
+        <ScrollViewer Grid.Column="2" VerticalScrollBarVisibility="Auto">
+            <StackPanel Margin="0,0,6,0">
+
+                <!-- ================================== general -->
+                <StackPanel x:Name="General">
+                    <Border Style="{StaticResource Glass}" CornerRadius="26" Padding="28,24">
+                        <StackPanel>
+                            <TextBlock Text="Aparência" Style="{StaticResource T.H2}" />
+                            <TextBlock Text="Escolha entre o tema prata claro e o grafite escuro." Style="{StaticResource T.Body}" Margin="0,4,0,16" />
+                            <Border Style="{StaticResource Seg.Host}" HorizontalAlignment="Left">
+                                <StackPanel Orientation="Horizontal">
+                                    <RadioButton x:Name="ThemeLight" Style="{StaticResource Seg}" Content="Claro" GroupName="theme" Checked="OnTheme" Tag="Light" />
+                                    <RadioButton x:Name="ThemeDark" Style="{StaticResource Seg}" Content="Escuro" GroupName="theme" Checked="OnTheme" Tag="Dark" />
+                                </StackPanel>
+                            </Border>
+                        </StackPanel>
+                    </Border>
+                    <Border Style="{StaticResource Glass}" CornerRadius="26" Padding="28,24" Margin="0,18,0,0">
+                        <StackPanel>
+                            <TextBlock Text="Pasta de downloads" Style="{StaticResource T.H2}" />
+                            <TextBlock Text="Local padrão onde os jogos serão salvos." Style="{StaticResource T.Body}" Margin="0,4,0,16" />
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <TextBox x:Name="DownloadDir" Style="{StaticResource Input}" IsReadOnly="True" core:Ui.Icon="{x:Static core:Icons.Folder}" />
+                                <Button Grid.Column="1" Style="{StaticResource Btn}" Content="Alterar" Margin="10,0,0,0" Click="OnPickDir" />
+                            </Grid>
+                        </StackPanel>
+                    </Border>
+                    <Border Style="{StaticResource Glass}" CornerRadius="26" Padding="28,24" Margin="0,18,0,0">
+                        <StackPanel>
+                            <TextBlock Text="Inicialização" Style="{StaticResource T.H2}" Margin="0,0,0,16" />
+                            <CheckBox x:Name="StartOnLibrary" Style="{StaticResource Switch}" Content="Abrir o Venix na Biblioteca" Click="OnToggle" />
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+
+                <!-- ================================== sources -->
+                <StackPanel x:Name="SourcesPanel" Visibility="Collapsed">
+                    <Border Style="{StaticResource Glass}" CornerRadius="26" Padding="28,24">
+                        <StackPanel>
+                            <Grid>
+                                <StackPanel>
+                                    <TextBlock Text="Fontes de download" Style="{StaticResource T.H2}" />
+                                    <TextBlock Style="{StaticResource T.Body}" Margin="0,4,0,0" MaxWidth="620" HorizontalAlignment="Left"
+                                               Text="O Venix busca opções de download em todas as fontes adicionadas. Cada fonte é a URL direta de um arquivo .json no formato { name, downloads: [ { title, uris, uploadDate, fileSize } ] }." />
+                                </StackPanel>
+                                <Button Style="{StaticResource Btn}" HorizontalAlignment="Right" VerticalAlignment="Top" Click="OnSyncAll">
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Style="{StaticResource T.Icon}" Text="{x:Static core:Icons.Sync}" FontSize="12" Margin="0,0,8,0" />
+                                        <TextBlock Text="Sincronizar" />
+                                    </StackPanel>
+                                </Button>
+                            </Grid>
+                            <Grid Margin="0,20,0,0">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <TextBox x:Name="NewUrl" Style="{StaticResource Input}" Tag="Cole uma ou várias URLs .json (uma por linha)" core:Ui.Icon="{x:Static core:Icons.Link}"
+                                         PreviewKeyDown="OnUrlKey" AcceptsReturn="True" TextWrapping="NoWrap" Height="Auto" MinHeight="42" MaxHeight="220" VerticalScrollBarVisibility="Auto" Padding="16,11" />
+                                <Button x:Name="AddBtn" Grid.Column="1" Style="{StaticResource Btn.Primary}" Margin="10,0,0,0" Click="OnAdd">
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Style="{StaticResource T.Icon}" Text="{x:Static core:Icons.Add}" FontSize="12" Margin="0,0,8,0" />
+                                        <TextBlock Text="Adicionar" />
+                                    </StackPanel>
+                                </Button>
+                                <Button Grid.Column="2" Style="{StaticResource Btn}" Margin="10,0,0,0" Click="OnImport" ToolTip="Importar um arquivo .json salvo no computador">
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Style="{StaticResource T.Icon}" Text="{x:Static core:Icons.Import}" FontSize="12" Margin="0,0,8,0" />
+                                        <TextBlock Text="Importar arquivo" />
+                                    </StackPanel>
+                                </Button>
+                            </Grid>
+                        </StackPanel>
+                    </Border>
+                    <Border Style="{StaticResource Glass}" CornerRadius="26" Padding="24,20" Margin="0,18,0,0" Background="{DynamicResource Ink}" BorderThickness="0">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <Border Width="46" Height="46" CornerRadius="15" Background="{DynamicResource Ink.Text}" VerticalAlignment="Center">
+                                <TextBlock Style="{StaticResource T.Icon}" Text="&#xE8A5;" FontSize="17" Foreground="{DynamicResource Ink}" />
+                            </Border>
+                            <StackPanel Grid.Column="1" Margin="16,0" VerticalAlignment="Center">
+                                <TextBlock Style="{StaticResource T.H3}" Foreground="{DynamicResource Ink.Text}" Text="Pasta sources" />
+                                <TextBlock x:Name="ConfigInfo" FontSize="12" Foreground="{DynamicResource Ink.Text}" Opacity="0.65" Margin="0,3,0,0" TextWrapping="Wrap" />
+                            </StackPanel>
+                            <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
+                                <Button Style="{StaticResource Btn}" Content="Abrir pasta" Click="OnOpenConfig" Margin="0,0,8,0" Height="38" Padding="16,0" FontSize="12.5" />
+                                <Button x:Name="ReloadBtn" Style="{StaticResource Btn.Circle}" Content="{x:Static core:Icons.Refresh}" Click="OnReloadConfig" ToolTip="Sincronizar a pasta sources" />
+                            </StackPanel>
+                        </Grid>
+                    </Border>
+
+                    <TextBlock x:Name="NoSources" Text="Nenhuma fonte adicionada ainda." Style="{StaticResource T.Label}" Margin="8,20" />
+                    <ItemsControl x:Name="SourceList" Margin="0,18,0,0">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate DataType="core:DownloadSource">
+                                <Border Style="{StaticResource Glass}" CornerRadius="24" Padding="24,20" Margin="0,0,0,14">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="Auto" />
+                                        </Grid.ColumnDefinitions>
+                                        <StackPanel>
+                                            <StackPanel Orientation="Horizontal">
+                                                <TextBlock Text="{Binding Name}" Style="{StaticResource T.H2}" />
+                                                <Border Style="{StaticResource Chip}" Margin="12,0,0,0" VerticalAlignment="Center" Padding="9,3">
+                                                    <TextBlock Text="{Binding StatusLabel}" FontSize="11" Foreground="{DynamicResource Text.2}" />
+                                                </Border>
+                                                <Border Style="{StaticResource Chip}" Margin="6,0,0,0" VerticalAlignment="Center" Padding="9,3">
+                                                    <TextBlock Text="{Binding OriginLabel}" FontSize="11" Foreground="{DynamicResource Text.3}" />
+                                                </Border>
+                                            </StackPanel>
+                                            <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
+                                                <TextBlock Text="{Binding Count, StringFormat={}{0:N0}}" Style="{StaticResource T.Big}" FontSize="30" />
+                                                <TextBlock Text="downloads na lista" Style="{StaticResource T.Label}" VerticalAlignment="Bottom" Margin="8,0,0,6" />
+                                            </StackPanel>
+                                            <TextBox Text="{Binding Origin, Mode=OneWay}" IsReadOnly="True" BorderThickness="0" Background="Transparent"
+                                                     Foreground="{DynamicResource Text.3}" FontSize="12" Margin="-2,6,0,0" />
+                                            <TextBlock Text="{Binding SyncedLabel}" Style="{StaticResource T.Label}" FontSize="11.5" Margin="0,2,0,0" />
+                                            <TextBlock Text="{Binding Error}" Foreground="{DynamicResource Danger}" FontSize="12" TextWrapping="Wrap" Margin="0,8,0,0"
+                                                       Visibility="{Binding HasError, Converter={x:Static core:Conv.Visible}}" />
+                                            <StackPanel Orientation="Horizontal" Margin="0,10,0,0" Visibility="{Binding CanOpenInBrowser, Converter={x:Static core:Conv.Visible}}">
+                                                <Button Style="{StaticResource Btn}" Content="Abrir no navegador" Height="34" Padding="14,0" FontSize="12.5" Click="OnOpenSourceUrl" Margin="0,0,8,0" />
+                                                <Button Style="{StaticResource Btn}" Content="Abrir pasta fontes" Height="34" Padding="14,0" FontSize="12.5" Click="OnOpenSourceFolder" />
+                                            </StackPanel>
+                                        </StackPanel>
+                                        <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Top">
+                                            <Button Style="{StaticResource Btn.Circle}" Content="{x:Static core:Icons.Sync}" Click="OnSyncOne" ToolTip="Sincronizar" Margin="0,0,8,0" />
+                                            <Button Style="{StaticResource Btn.Circle}" Content="{x:Static core:Icons.Delete}" Click="OnRemove" ToolTip="Remover fonte" />
+                                        </StackPanel>
+                                    </Grid>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </StackPanel>
+
+                <!-- ================================== downloads -->
+                <StackPanel x:Name="DownloadsPanel" Visibility="Collapsed">
+                    <Border Style="{StaticResource Glass}" CornerRadius="26" Padding="28,24">
+                        <StackPanel>
+                            <TextBlock Text="Velocidade máxima" Style="{StaticResource T.H2}" />
+                            <TextBlock Text="Em Mbps. Deixe 0 para ilimitada." Style="{StaticResource T.Body}" Margin="0,4,0,16" />
+                            <StackPanel Orientation="Horizontal">
+                                <TextBox x:Name="SpeedLimit" Style="{StaticResource Input}" Width="160" core:Ui.Icon="{x:Static core:Icons.Speed}" PreviewTextInput="OnDigits" />
+                                <Button Style="{StaticResource Btn.Primary}" Content="Aplicar" Margin="10,0,0,0" Click="OnApplySpeed" />
+                            </StackPanel>
+                        </StackPanel>
+                    </Border>
+                    <Border Style="{StaticResource Glass}" CornerRadius="26" Padding="28,24" Margin="0,18,0,0">
+                        <StackPanel>
+                            <TextBlock Text="Comportamento" Style="{StaticResource T.H2}" Margin="0,0,0,16" />
+                            <CheckBox x:Name="Seed" Style="{StaticResource Switch}" Content="Continuar semeando após concluir o download" Click="OnToggle" />
+                        </StackPanel>
+                    </Border>
+                    <Border Style="{StaticResource Glass}" CornerRadius="26" Padding="28,24" Margin="0,18,0,0">
+                        <StackPanel>
+                            <TextBlock Text="Trackers" Style="{StaticResource T.H2}" />
+                            <TextBlock Style="{StaticResource T.Body}" Margin="0,4,0,16" Text="Muitos links das listas não trazem trackers e ficam parados em &quot;Obtendo metadados&quot;. Estes trackers públicos são adicionados a cada download para encontrar peers mais rápido." />
+                            <CheckBox x:Name="AddTrackers" Style="{StaticResource Switch}" Content="Adicionar trackers públicos aos downloads" Click="OnTrackersToggle" />
+                            <TextBox x:Name="TrackerList" Style="{StaticResource Input}" Margin="0,16,0,0" AcceptsReturn="True" TextWrapping="NoWrap" Height="Auto" MinHeight="42" MaxHeight="240"
+                                     VerticalScrollBarVisibility="Auto" Padding="16,11" FontFamily="Cascadia Mono, Consolas" FontSize="12" LostFocus="OnTrackersChanged" />
+                            <StackPanel Orientation="Horizontal" Margin="0,12,0,0">
+                                <Button Style="{StaticResource Btn}" Content="Restaurar padrão" Height="36" Padding="16,0" FontSize="12.5" Click="OnTrackersReset" />
+                                <TextBlock Style="{StaticResource T.Label}" VerticalAlignment="Center" Margin="14,0,0,0" Text="Um tracker por linha. Vale para downloads novos e para os que ainda não obtiveram os metadados (pause e retome)." />
+                            </StackPanel>
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+
+                <!-- ================================== gamepad -->
+                <StackPanel x:Name="GamepadPanel" Visibility="Collapsed">
+                    <Border Style="{StaticResource Glass}" CornerRadius="26" Padding="28,24">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <!-- illustration of the primary controller's family -->
+                            <Image x:Name="GamepadArt" Grid.Column="1" Width="230" VerticalAlignment="Top" Margin="28,-4,-6,0" Stretch="Uniform"
+                                   RenderOptions.BitmapScalingMode="HighQuality" Visibility="Collapsed">
+                                <Image.Effect><DropShadowEffect BlurRadius="30" ShadowDepth="12" Direction="270" Opacity="0.28" Color="#1A1C22" /></Image.Effect>
+                            </Image>
+                        <StackPanel>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <StackPanel>
+                                    <TextBlock Text="Controle" Style="{StaticResource T.H2}" />
+                                    <TextBlock x:Name="GamepadStatus" Style="{StaticResource T.Body}" Margin="0,4,0,0" TextWrapping="Wrap" />
+                                </StackPanel>
+                                <Border Grid.Column="1" Style="{StaticResource Chip}" VerticalAlignment="Top" Margin="16,0,0,0" Padding="12,6">
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Style="{StaticResource T.Icon}" Text="{x:Static core:Icons.Game}" FontSize="12" Margin="0,0,8,0" Foreground="{DynamicResource Text}" />
+                                        <TextBlock x:Name="GamepadCount" FontSize="12" Foreground="{DynamicResource Text.2}" VerticalAlignment="Center" />
+                                    </StackPanel>
+                                </Border>
+                            </Grid>
+                            <TextBlock Text="CONTROLE PRINCIPAL" Style="{StaticResource T.Label}" FontSize="11" FontWeight="SemiBold" Margin="0,22,0,10" />
+                            <WrapPanel x:Name="PrimaryList" />
+                            <TextBlock x:Name="NoGamepad" Style="{StaticResource T.Label}" TextWrapping="Wrap"
+                                       Text="Conecte um controle por USB ou Bluetooth — ele é reconhecido na hora, sem configurar nada." />
+                            <Border Height="1" Background="{DynamicResource Line}" Margin="0,18,0,18" />
+                            <CheckBox x:Name="GamepadNavToggle" Style="{StaticResource Switch}" Content="Navegar pelo Venix com o controle" Click="OnGamepadToggle" />
+                            <WrapPanel x:Name="GamepadHints" Margin="0,14,0,0" />
+                        </StackPanel>
+                        </Grid>
+                    </Border>
+                    <Border Style="{StaticResource Glass}" CornerRadius="26" Padding="28,24" Margin="0,18,0,0">
+                        <StackPanel>
+                            <TextBlock Text="Jogar com o controle" Style="{StaticResource T.H2}" />
+                            <TextBlock Style="{StaticResource T.Body}" Margin="0,4,0,16" TextWrapping="Wrap"
+                                       Text="Controles Xbox funcionam em qualquer jogo. Controles PlayStation, Switch e genéricos só são vistos por jogos que entendem controle Xbox (XInput) quando o Venix os apresenta como um controle Xbox virtual, pelo driver ViGEmBus. Enquanto o jogo roda, a navegação do Venix pelo controle fica pausada." />
+                            <CheckBox x:Name="GamepadLaunchToggle" Style="{StaticResource Switch}" Content="Iniciar jogos com suporte a controle" Click="OnGamepadToggle" />
+                            <Grid Margin="0,18,0,0">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                    <Border x:Name="ViGEmDot" Width="9" Height="9" CornerRadius="5" Background="{DynamicResource Success}" Margin="0,0,10,0" VerticalAlignment="Center" />
+                                    <TextBlock x:Name="ViGEmStatus" Style="{StaticResource T.Label}" FontSize="12.5" TextWrapping="Wrap" VerticalAlignment="Center" />
+                                </StackPanel>
+                                <Button x:Name="ViGEmBtn" Grid.Column="1" Style="{StaticResource Btn}" Content="Baixar ViGEmBus" Height="36" Padding="16,0" FontSize="12.5" Margin="12,0,0,0" Click="OnViGEm"
+                                        ToolTip="Abre a página do driver ViGEmBus (gratuito, código aberto)" />
+                            </Grid>
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+
+                <!-- ================================== about -->
+                <Border x:Name="AboutPanel" Style="{StaticResource Glass}" CornerRadius="26" Padding="36" Visibility="Collapsed">
+                    <StackPanel>
+                        <Border Width="64" Height="64" CornerRadius="20" Background="{DynamicResource Ink}" HorizontalAlignment="Left">
+                            <Path Data="M 19,21 L 32,45 L 45,21" Stroke="{DynamicResource Ink.Text}" StrokeThickness="5"
+                                  StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round" />
+                        </Border>
+                        <TextBlock Text="Venix" Style="{StaticResource T.H1}" FontSize="34" Margin="0,20,0,0" />
+                        <TextBlock x:Name="Version" Style="{StaticResource T.Label}" FontSize="13" />
+                        <TextBlock Style="{StaticResource T.Body}" Margin="0,18,0,0" MaxWidth="560" HorizontalAlignment="Left"
+                                   Text="Launcher de jogos para Windows. Metadados e artes fornecidos pela loja Steam. O Venix não hospeda conteúdo: as fontes de download são configuradas por você e são de sua responsabilidade." />
+                        <TextBlock x:Name="DataPath" Style="{StaticResource T.Label}" Margin="0,18,0,0" />
+                    </StackPanel>
+                </Border>
+            </StackPanel>
+        </ScrollViewer>
+    </Grid>
+</UserControl>

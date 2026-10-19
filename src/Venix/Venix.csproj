@@ -1,0 +1,31 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UseWPF>true</UseWPF>
+    <AssemblyName>Venix</AssemblyName>
+    <RootNamespace>Venix</RootNamespace>
+    <Product>Venix</Product>
+    <Version>1.0.0</Version>
+    <ApplicationIcon>Assets\venix.ico</ApplicationIcon>
+    <PlatformTarget>x64</PlatformTarget>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <NoWarn>$(NoWarn);CS8618;CS8602;CS8604;CS8600;CS8601;CS8603;CS8625</NoWarn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Iced" Version="1.21.0" />
+    <PackageReference Include="MonoTorrent" Version="3.0.2" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="Assets\venix.ico" />
+    <Resource Include="Assets\pad-xbox.png" />
+    <Resource Include="Assets\pad-playstation.png" />
+    <Resource Include="Assets\pad-generic.png" />
+  </ItemGroup>
+
+</Project>

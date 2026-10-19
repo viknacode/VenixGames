@@ -1,0 +1,77 @@
+<UserControl x:Class="Venix.Pages.LibraryPage"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:core="clr-namespace:Venix.Core">
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <StackPanel Margin="28,8,28,32">
+            <!-- stat strip -->
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="16" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="16" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+                <Border Style="{StaticResource Glass}" Padding="24,20">
+                    <StackPanel>
+                        <TextBlock Text="Jogos" Style="{StaticResource T.Label}" />
+                        <TextBlock x:Name="StatGames" Style="{StaticResource T.Big}" Text="0" />
+                    </StackPanel>
+                </Border>
+                <Border Grid.Column="2" Style="{StaticResource Glass}" Padding="24,20">
+                    <StackPanel>
+                        <TextBlock Text="Tempo total de jogo" Style="{StaticResource T.Label}" />
+                        <TextBlock x:Name="StatTime" Style="{StaticResource T.Big}" Text="0" />
+                    </StackPanel>
+                </Border>
+                <Border Grid.Column="4" Style="{StaticResource Glass}" Padding="24,20" Background="{DynamicResource Ink}" BorderThickness="0">
+                    <StackPanel>
+                        <TextBlock Text="Prontos para jogar" Style="{StaticResource T.Label}" Foreground="{DynamicResource Ink.Text}" Opacity="0.6" />
+                        <TextBlock x:Name="StatReady" Style="{StaticResource T.Big}" Text="0" Foreground="{DynamicResource Ink.Text}" />
+                    </StackPanel>
+                </Border>
+            </Grid>
+
+            <Grid Margin="8,30,8,8">
+                <Border Style="{StaticResource Seg.Host}" HorizontalAlignment="Left">
+                    <StackPanel Orientation="Horizontal">
+                        <RadioButton Style="{StaticResource Seg}" Content="Todos" GroupName="lf" Tag="all" IsChecked="True" Checked="OnFilter" />
+                        <RadioButton Style="{StaticResource Seg}" Content="Prontos" GroupName="lf" Tag="ready" Checked="OnFilter" />
+                        <RadioButton Style="{StaticResource Seg}" Content="Jogados" GroupName="lf" Tag="played" Checked="OnFilter" />
+                    </StackPanel>
+                </Border>
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                    <TextBox x:Name="Search" Style="{StaticResource Input}" Width="260" Tag="Buscar na biblioteca…" core:Ui.Icon="{x:Static core:Icons.Search}"
+                             TextChanged="OnSearch" Margin="0,0,12,0" />
+                    <Border Style="{StaticResource Seg.Host}">
+                        <StackPanel Orientation="Horizontal">
+                            <RadioButton Style="{StaticResource Seg}" Content="Recentes" GroupName="ls" Tag="recent" IsChecked="True" Checked="OnSort" />
+                            <RadioButton Style="{StaticResource Seg}" Content="A–Z" GroupName="ls" Tag="az" Checked="OnSort" />
+                            <RadioButton Style="{StaticResource Seg}" Content="Mais jogados" GroupName="ls" Tag="time" Checked="OnSort" />
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+            </Grid>
+
+            <Border x:Name="Empty" Style="{StaticResource Glass}" Margin="8,16,8,0" Padding="40" CornerRadius="28" Visibility="Collapsed">
+                <StackPanel HorizontalAlignment="Center">
+                    <Border Width="64" Height="64" CornerRadius="32" Background="{DynamicResource Glass.Strong}">
+                        <TextBlock Style="{StaticResource T.Icon}" Text="{x:Static core:Icons.Library}" FontSize="22" Foreground="{DynamicResource Text}" />
+                    </Border>
+                    <TextBlock Text="Sua biblioteca está vazia" Style="{StaticResource T.H2}" HorizontalAlignment="Center" Margin="0,18,0,6" />
+                    <TextBlock Text="Explore o catálogo e adicione jogos para acompanhar seu tempo de jogo." Style="{StaticResource T.Body}" TextAlignment="Center" />
+                    <Button Style="{StaticResource Btn.Primary}" Content="Explorar catálogo" HorizontalAlignment="Center" Margin="0,20,0,0" Click="OnExplore" />
+                </StackPanel>
+            </Border>
+
+            <ItemsControl x:Name="TileList" ItemsPanel="{StaticResource TileGrid}" Margin="0,8,0,0">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate DataType="core:Tile">
+                        <Button Style="{StaticResource Tile}" Click="OnTile" />
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

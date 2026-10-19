@@ -1,0 +1,43 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <!-- Silver / soft gray glass -->
+    <LinearGradientBrush x:Key="Bg.Base" StartPoint="0,0" EndPoint="1,1">
+        <GradientStop Color="#EEEFF1" Offset="0" />
+        <GradientStop Color="#E2E3E6" Offset="0.55" />
+        <GradientStop Color="#D6D7DB" Offset="1" />
+    </LinearGradientBrush>
+    <SolidColorBrush x:Key="Bg.Blob1" Color="#FFFFFF" Opacity="0.95" />
+    <SolidColorBrush x:Key="Bg.Blob2" Color="#C9CACF" Opacity="0.9" />
+    <SolidColorBrush x:Key="Bg.Blob3" Color="#F4F4F5" Opacity="0.8" />
+
+    <SolidColorBrush x:Key="Glass.Fill" Color="#FFFFFF" Opacity="0.55" />
+    <SolidColorBrush x:Key="Glass.Strong" Color="#FFFFFF" Opacity="0.78" />
+    <SolidColorBrush x:Key="Glass.Soft" Color="#FFFFFF" Opacity="0.32" />
+    <SolidColorBrush x:Key="Glass.Hover" Color="#FFFFFF" Opacity="0.9" />
+    <LinearGradientBrush x:Key="Glass.Border" StartPoint="0,0" EndPoint="0,1">
+        <GradientStop Color="#FFFFFFFF" Offset="0" />
+        <GradientStop Color="#B3FFFFFF" Offset="0.5" />
+        <GradientStop Color="#66FFFFFF" Offset="1" />
+    </LinearGradientBrush>
+    <SolidColorBrush x:Key="Line" Color="#14161A" Opacity="0.08" />
+    <SolidColorBrush x:Key="Line.Strong" Color="#14161A" Opacity="0.14" />
+
+    <SolidColorBrush x:Key="Text" Color="#16171A" />
+    <SolidColorBrush x:Key="Text.2" Color="#5B5E66" />
+    <SolidColorBrush x:Key="Text.3" Color="#9A9CA3" />
+
+    <SolidColorBrush x:Key="Ink" Color="#1C1D20" />
+    <SolidColorBrush x:Key="Ink.Hover" Color="#2E2F33" />
+    <SolidColorBrush x:Key="Ink.Text" Color="#FFFFFF" />
+
+    <SolidColorBrush x:Key="Track" Color="#14161A" Opacity="0.08" />
+    <SolidColorBrush x:Key="Success" Color="#2FB463" />
+    <SolidColorBrush x:Key="Danger" Color="#E5484D" />
+    <SolidColorBrush x:Key="Danger.Soft" Color="#E5484D" Opacity="0.12" />
+    <SolidColorBrush x:Key="Accent" Color="#FF7A1A" />
+
+    <Color x:Key="Shadow.Color">#2A2C34</Color>
+    <SolidColorBrush x:Key="Scrim" Color="#E6E7EA" Opacity="0.55" />
+    <SolidColorBrush x:Key="Placeholder" Color="#D3D4D8" />
+    <SolidColorBrush x:Key="Flyout.Fill" Color="#FFFFFF" Opacity="0.97" />
+</ResourceDictionary>

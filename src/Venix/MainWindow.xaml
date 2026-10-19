@@ -1,0 +1,213 @@
+﻿<Window x:Class="Venix.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:core="clr-namespace:Venix.Core"
+        xmlns:controls="clr-namespace:Venix.Controls"
+        Title="Venix" Width="1440" Height="900" MinWidth="1120" MinHeight="720"
+        WindowStartupLocation="CenterScreen" WindowStyle="None" ResizeMode="CanResize"
+        Background="{DynamicResource Bg.Base}" Icon="Assets/venix.ico"
+        FontFamily="{StaticResource Font.Text}" UseLayoutRounding="True"
+        TextOptions.TextFormattingMode="Ideal" TextOptions.TextRenderingMode="ClearType">
+    <WindowChrome.WindowChrome>
+        <WindowChrome CaptionHeight="0" ResizeBorderThickness="6" GlassFrameThickness="0" CornerRadius="0" UseAeroCaptionButtons="False" />
+    </WindowChrome.WindowChrome>
+
+    <Grid x:Name="Root">
+        <!-- ambient background: soft blurred light blobs -->
+        <Canvas x:Name="Ambient" IsHitTestVisible="False" ClipToBounds="True">
+            <Canvas.CacheMode><BitmapCache RenderAtScale="0.5" /></Canvas.CacheMode>
+            <Ellipse Width="900" Height="700" Canvas.Left="-200" Canvas.Top="-320" Fill="{DynamicResource Bg.Blob1}">
+                <Ellipse.Effect><BlurEffect Radius="160" /></Ellipse.Effect>
+            </Ellipse>
+            <Ellipse Width="800" Height="600" Canvas.Left="900" Canvas.Top="520" Fill="{DynamicResource Bg.Blob2}">
+                <Ellipse.Effect><BlurEffect Radius="180" /></Ellipse.Effect>
+            </Ellipse>
+            <Ellipse Width="600" Height="500" Canvas.Left="700" Canvas.Top="-200" Fill="{DynamicResource Bg.Blob3}">
+                <Ellipse.Effect><BlurEffect Radius="160" /></Ellipse.Effect>
+            </Ellipse>
+        </Canvas>
+
+        <Grid x:Name="Shell">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="272" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+
+            <!-- ======================================================= sidebar -->
+            <Border Style="{StaticResource Glass}" Margin="14,14,0,14" Padding="16,20,16,16" CornerRadius="28">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+
+                    <StackPanel Orientation="Horizontal" Margin="6,0,0,26" MouseLeftButtonDown="OnDragArea" Background="Transparent">
+                        <Border Width="34" Height="34" CornerRadius="11" Background="{DynamicResource Ink}">
+                            <Path Data="M 10,11 L 17,24 L 24,11" Stroke="{DynamicResource Ink.Text}" StrokeThickness="3"
+                                  StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round" />
+                        </Border>
+                        <StackPanel Margin="12,0,0,0" VerticalAlignment="Center">
+                            <TextBlock Text="venix" Style="{StaticResource T.H2}" FontSize="20" FontWeight="SemiBold" Margin="0,-3,0,0" />
+                            <TextBlock Text="games launcher" Style="{StaticResource T.Label}" FontSize="11" Margin="0,-2,0,0" />
+                        </StackPanel>
+                    </StackPanel>
+
+                    <StackPanel Grid.Row="1">
+                        <RadioButton x:Name="NavHome" Style="{StaticResource Nav}" Content="Início" Tag="{x:Static core:Icons.Home}" Click="OnNav" />
+                        <RadioButton x:Name="NavCatalog" Style="{StaticResource Nav}" Content="Catálogo" Tag="{x:Static core:Icons.Catalog}" Click="OnNav" />
+                        <RadioButton x:Name="NavLibrary" Style="{StaticResource Nav}" Content="Biblioteca" Tag="{x:Static core:Icons.Library}" Click="OnNav" />
+                        <RadioButton x:Name="NavCheats" Style="{StaticResource Nav}" Content="Cheats" Tag="{x:Static core:Icons.Cheat}" Click="OnNav" />
+                        <RadioButton x:Name="NavDownloads" Style="{StaticResource Nav}" Content="Downloads" Tag="{x:Static core:Icons.Download}" Click="OnNav" />
+                        <RadioButton x:Name="NavSettings" Style="{StaticResource Nav}" Content="Ajustes" Tag="{x:Static core:Icons.Settings}" Click="OnNav" />
+                    </StackPanel>
+
+                    <Grid Grid.Row="2" Margin="8,22,4,10">
+                        <TextBlock Text="SUA BIBLIOTECA" Style="{StaticResource T.Label}" FontSize="11" FontWeight="SemiBold" />
+                        <TextBlock x:Name="LibCount" Style="{StaticResource T.Label}" FontSize="11" HorizontalAlignment="Right" />
+                    </Grid>
+
+                    <ScrollViewer Grid.Row="3" VerticalScrollBarVisibility="Auto" Margin="-4,0,-8,0">
+                        <ItemsControl x:Name="SideLibrary" Margin="0,0,8,0">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate DataType="core:LibraryGame">
+                                    <Button Click="OnSideGame" Cursor="Hand" FocusVisualStyle="{x:Null}">
+                                        <Button.Template>
+                                            <ControlTemplate TargetType="Button">
+                                                <Border x:Name="bd" CornerRadius="12" Padding="8,6" Background="Transparent">
+                                                    <Grid>
+                                                        <Grid.ColumnDefinitions>
+                                                            <ColumnDefinition Width="Auto" />
+                                                            <ColumnDefinition Width="*" />
+                                                        </Grid.ColumnDefinitions>
+                                                        <Border Width="30" Height="30" CornerRadius="9" Background="{DynamicResource Placeholder}">
+                                                            <Border CornerRadius="9">
+                                                                <Border.Background>
+                                                                    <ImageBrush Stretch="UniformToFill" core:Img.DecodeWidth="80" core:Img.Urls="{Binding Converter={x:Static core:Conv.LibraryIcon}}" />
+                                                                </Border.Background>
+                                                            </Border>
+                                                        </Border>
+                                                        <StackPanel Grid.Column="1" Margin="12,0,0,0" VerticalAlignment="Center">
+                                                            <TextBlock Text="{Binding Title}" FontSize="13" Foreground="{DynamicResource Text}" TextTrimming="CharacterEllipsis" />
+                                                            <TextBlock Text="{Binding PlaytimeLabel}" FontSize="11" Foreground="{DynamicResource Text.3}" />
+                                                        </StackPanel>
+                                                    </Grid>
+                                                </Border>
+                                                <ControlTemplate.Triggers>
+                                                    <Trigger Property="IsMouseOver" Value="True">
+                                                        <Setter TargetName="bd" Property="Background" Value="{DynamicResource Glass.Strong}" />
+                                                    </Trigger>
+                                                </ControlTemplate.Triggers>
+                                            </ControlTemplate>
+                                        </Button.Template>
+                                    </Button>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </ScrollViewer>
+                    <TextBlock x:Name="SideEmpty" Grid.Row="3" Style="{StaticResource T.Label}" Margin="8,4" TextWrapping="Wrap"
+                               Text="Os jogos que você adicionar aparecem aqui." />
+
+                    <!-- active download mini card -->
+                    <Border x:Name="MiniDownload" Grid.Row="4" Style="{StaticResource Glass.Flat}" Background="{DynamicResource Glass.Strong}"
+                            Padding="14" CornerRadius="18" Margin="0,12,0,0" Cursor="Hand" MouseLeftButtonUp="OnMiniDownload" Visibility="Collapsed">
+                        <StackPanel>
+                            <Grid>
+                                <TextBlock Text="Baixando" Style="{StaticResource T.Label}" />
+                                <TextBlock x:Name="MiniSpeed" Style="{StaticResource T.Label}" HorizontalAlignment="Right" />
+                            </Grid>
+                            <TextBlock x:Name="MiniTitle" FontSize="13" Foreground="{DynamicResource Text}" Margin="0,4,0,8" TextTrimming="CharacterEllipsis" />
+                            <Grid>
+                                <ProgressBar x:Name="MiniBar" Style="{StaticResource Progress}" Height="4" Margin="0,0,44,0" VerticalAlignment="Center" />
+                                <TextBlock x:Name="MiniPct" FontSize="12" Foreground="{DynamicResource Text}" HorizontalAlignment="Right" />
+                            </Grid>
+                        </StackPanel>
+                    </Border>
+                </Grid>
+            </Border>
+
+            <!-- ======================================================= content -->
+            <Grid Grid.Column="1">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="84" />
+                    <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
+
+                <!-- top bar (drag area) -->
+                <Grid Background="Transparent" MouseLeftButtonDown="OnDragArea" Margin="28,14,10,0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <Button x:Name="BackBtn" Style="{StaticResource Btn.Circle}" Content="{x:Static core:Icons.Back}" Click="OnBack"
+                            Margin="0,0,16,0" VerticalAlignment="Center" Visibility="Collapsed" ToolTip="Voltar" />
+                    <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                        <TextBlock x:Name="PageTitle" Style="{StaticResource T.H1}" TextTrimming="CharacterEllipsis" />
+                        <TextBlock x:Name="PageSubtitle" Style="{StaticResource T.Label}" FontSize="12.5" Margin="1,1,0,0" />
+                    </StackPanel>
+                    <!-- connected controller (click: Ajustes → Controle) -->
+                    <Border x:Name="GamepadChip" Grid.Column="2" Style="{StaticResource Chip}" Margin="0,0,14,0" Padding="12,0" Height="36" VerticalAlignment="Center"
+                            Visibility="Collapsed" Cursor="Hand" MouseLeftButtonDown="OnGamepadChip" core:GamepadNavigation.Skip="True">
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                            <Image x:Name="GamepadChipArt" Height="22" Margin="-2,0,8,0" Stretch="Uniform" RenderOptions.BitmapScalingMode="HighQuality" />
+                            <TextBlock x:Name="GamepadChipText" FontSize="12.5" Foreground="{DynamicResource Text}" VerticalAlignment="Center" />
+                            <TextBlock x:Name="GamepadChipBattery" Style="{StaticResource T.Icon}" FontSize="14" Foreground="{DynamicResource Text.2}" Margin="8,0,0,0" Visibility="Collapsed" />
+                        </StackPanel>
+                    </Border>
+                    <TextBox x:Name="GlobalSearch" Grid.Column="3" Style="{StaticResource Input}" Width="300" VerticalAlignment="Center" Padding="16,0,36,0"
+                             Tag="Buscar jogos…" core:Ui.Icon="{x:Static core:Icons.Search}" KeyDown="OnGlobalSearch" TextChanged="OnGlobalSearchChanged"
+                             GotKeyboardFocus="OnSearchFocus" LostKeyboardFocus="OnSearchBlur" PreviewMouseLeftButtonDown="OnSearchClick" Margin="0,0,18,0" />
+                    <!-- "x" that clears the search text (visible while there is text) -->
+                    <Button x:Name="SearchClear" Grid.Column="3" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,28,0" Width="24" Height="24"
+                            Focusable="False" Cursor="Hand" Visibility="Collapsed" ToolTip="Limpar" Click="OnSearchClear" core:GamepadNavigation.Skip="True">
+                        <Button.Template>
+                            <ControlTemplate TargetType="Button">
+                                <Border x:Name="bd" CornerRadius="12" Background="Transparent">
+                                    <TextBlock x:Name="ic" Style="{StaticResource T.Icon}" Text="{x:Static core:Icons.Close}" FontSize="10" Foreground="{DynamicResource Text.3}" />
+                                </Border>
+                                <ControlTemplate.Triggers>
+                                    <Trigger Property="IsMouseOver" Value="True">
+                                        <Setter TargetName="bd" Property="Background" Value="{DynamicResource Glass.Hover}" />
+                                        <Setter TargetName="ic" Property="Foreground" Value="{DynamicResource Text}" />
+                                    </Trigger>
+                                </ControlTemplate.Triggers>
+                            </ControlTemplate>
+                        </Button.Template>
+                    </Button>
+                    <!-- recent searches + suggestions under the box; right edge aligned with the box -->
+                    <Popup x:Name="SearchPopup" PlacementTarget="{Binding ElementName=GlobalSearch}" Placement="Bottom" AllowsTransparency="True"
+                           StaysOpen="True" PopupAnimation="Fade" HorizontalOffset="-152" VerticalOffset="-2" Focusable="False">
+                        <controls:SearchFlyout x:Name="SearchFlyout" />
+                    </Popup>
+                    <StackPanel Grid.Column="4" Orientation="Horizontal" VerticalAlignment="Top" Margin="0,-6,0,0" core:GamepadNavigation.Skip="True">
+                        <Button Style="{StaticResource Btn.Window}" Content="{x:Static core:Icons.Minimize}" Click="OnMin" />
+                        <Button x:Name="MaxBtn" Style="{StaticResource Btn.Window}" Content="{x:Static core:Icons.Maximize}" Click="OnMax" />
+                        <Button Style="{StaticResource Btn.Window.Close}" Content="{x:Static core:Icons.ChromeClose}" Click="OnClose" />
+                    </StackPanel>
+                </Grid>
+
+                <ContentControl x:Name="PageHost" Grid.Row="1" Focusable="False" />
+            </Grid>
+        </Grid>
+
+        <!-- ======================================================= modal overlay -->
+        <Grid x:Name="Overlay" Visibility="Collapsed">
+            <Border Background="{DynamicResource Scrim}" MouseLeftButtonDown="OnScrimClick" />
+            <ContentControl x:Name="OverlayHost" HorizontalAlignment="Center" VerticalAlignment="Center" Focusable="False" />
+        </Grid>
+
+        <!-- ======================================================= controller focus ring (positioned by GamepadNavigation) -->
+        <Border x:Name="GamepadFocus" HorizontalAlignment="Left" VerticalAlignment="Top" BorderBrush="{DynamicResource Accent}" BorderThickness="2.5"
+                CornerRadius="16" IsHitTestVisible="False" Visibility="Collapsed" SnapsToDevicePixels="True">
+            <Border.Effect><DropShadowEffect BlurRadius="16" ShadowDepth="0" Opacity="0.45" Color="#FF7A1A" /></Border.Effect>
+        </Border>
+
+        <!-- ======================================================= toasts -->
+        <StackPanel x:Name="Toasts" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,28,28" IsHitTestVisible="False" />
+    </Grid>
+</Window>

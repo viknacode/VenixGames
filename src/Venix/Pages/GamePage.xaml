@@ -1,0 +1,246 @@
+<UserControl x:Class="Venix.Pages.GamePage"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:core="clr-namespace:Venix.Core">
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <StackPanel Margin="28,8,28,32">
+
+            <!-- ============================================ hero -->
+            <Grid Height="460">
+                <Border CornerRadius="30" Background="{DynamicResource Placeholder}" Effect="{StaticResource Shadow.Card}" />
+                <Border x:Name="Art" CornerRadius="30">
+                    <Border.Background><ImageBrush x:Name="ArtBrush" Stretch="UniformToFill" AlignmentY="Top" /></Border.Background>
+                </Border>
+                <Border CornerRadius="30">
+                    <Border.Background>
+                        <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                            <GradientStop Color="#00000000" Offset="0.3" />
+                            <GradientStop Color="#B308090A" Offset="1" />
+                        </LinearGradientBrush>
+                    </Border.Background>
+                </Border>
+
+                <Grid core:Ui.ClipTo="{Binding ElementName=Panel}" IsHitTestVisible="False">
+                    <Border CornerRadius="30">
+                        <Border.Background><ImageBrush x:Name="BlurBrush" Stretch="UniformToFill" AlignmentY="Top" /></Border.Background>
+                        <Border.Effect><BlurEffect Radius="50" RenderingBias="Performance" /></Border.Effect>
+                    </Border>
+                </Grid>
+
+                <Border x:Name="Panel" VerticalAlignment="Bottom" Margin="22" CornerRadius="24" Padding="26,22" BorderThickness="1">
+                    <Border.Background>
+                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                            <GradientStop Color="#38FFFFFF" Offset="0" />
+                            <GradientStop Color="#14FFFFFF" Offset="1" />
+                        </LinearGradientBrush>
+                    </Border.Background>
+                    <Border.BorderBrush>
+                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                            <GradientStop Color="#80FFFFFF" Offset="0" />
+                            <GradientStop Color="#14FFFFFF" Offset="1" />
+                        </LinearGradientBrush>
+                    </Border.BorderBrush>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <StackPanel VerticalAlignment="Center">
+                            <Grid MaxHeight="90" HorizontalAlignment="Left">
+                                <Image x:Name="Logo" MaxWidth="340" MaxHeight="90" Stretch="Uniform" HorizontalAlignment="Left" />
+                                <TextBlock x:Name="NameText" Style="{StaticResource T.H1}" Foreground="White" FontSize="34" TextWrapping="Wrap" />
+                            </Grid>
+                            <TextBlock x:Name="MetaText" Foreground="#D9FFFFFF" FontSize="13" Margin="0,12,0,0" />
+                        </StackPanel>
+                        <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center" Margin="24,0,0,0">
+                            <Button x:Name="PlayBtn" Style="{StaticResource Btn.Light}" Click="OnPlay" Visibility="Collapsed" Margin="0,0,10,0" Height="46" Padding="26,0">
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Style="{StaticResource T.Icon}" Text="{x:Static core:Icons.Play}" FontSize="13" Margin="0,0,10,0" />
+                                    <TextBlock x:Name="PlayText" Text="Jogar" />
+                                </StackPanel>
+                            </Button>
+                            <Button x:Name="DownloadBtn" Style="{StaticResource Btn.Light}" Click="OnDownloads" Margin="0,0,10,0" Height="46" Padding="24,0">
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Style="{StaticResource T.Icon}" Text="{x:Static core:Icons.Download}" FontSize="13" Margin="0,0,10,0" />
+                                    <TextBlock x:Name="DownloadText" Text="Opções de download" />
+                                </StackPanel>
+                            </Button>
+                            <!-- only shown when the cheats index has a table for this game (or one is linked to it) -->
+                            <Button x:Name="CheatsBtn" Style="{StaticResource Btn.Frost}" Click="OnHeroCheats" Visibility="Collapsed" Margin="0,0,10,0" Height="46" Padding="22,0"
+                                    ToolTip="Ver tabelas de cheats deste jogo">
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Style="{StaticResource T.Icon}" Text="{x:Static core:Icons.Cheat}" FontSize="13" Margin="0,0,10,0" />
+                                    <TextBlock x:Name="CheatsBtnText" Text="Cheats" />
+                                </StackPanel>
+                            </Button>
+                            <Button x:Name="LibBtn" Style="{StaticResource Btn.Circle.Frost}" Width="46" Height="46" Click="OnToggleLibrary"
+                                    Content="{x:Static core:Icons.Add}" ToolTip="Adicionar à biblioteca" />
+                        </StackPanel>
+                    </Grid>
+                </Border>
+            </Grid>
+
+            <!-- ============================================ body -->
+            <Grid Margin="0,22,0,0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="20" />
+                    <ColumnDefinition Width="340" />
+                </Grid.ColumnDefinitions>
+
+                <StackPanel>
+                    <Border Style="{StaticResource Glass}" Padding="28,24" CornerRadius="28">
+                        <StackPanel>
+                            <TextBlock Text="Sobre o jogo" Style="{StaticResource T.H2}" />
+                            <TextBlock x:Name="ShortDesc" Style="{StaticResource T.Body}" Foreground="{DynamicResource Text}" FontSize="14.5" Margin="0,14,0,0" />
+                            <Grid Margin="0,14,0,0">
+                                <TextBlock x:Name="About" Style="{StaticResource T.Body}" MaxHeight="190" />
+                            </Grid>
+                            <Button x:Name="MoreBtn" Style="{StaticResource Btn.Link}" Content="Mostrar mais" Margin="0,12,0,0" HorizontalAlignment="Left" Click="OnMore" />
+                        </StackPanel>
+                    </Border>
+
+                    <Grid x:Name="ShotsHeader" Margin="6,28,6,12">
+                        <TextBlock Text="Capturas de tela" Style="{StaticResource T.H2}" />
+                        <TextBlock x:Name="ShotsCount" Style="{StaticResource T.Label}" HorizontalAlignment="Right" VerticalAlignment="Bottom" />
+                    </Grid>
+                    <ScrollViewer x:Name="ShotsScroll" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled" PreviewMouseWheel="OnShotsWheel">
+                        <ItemsControl x:Name="Shots" Margin="0,0,0,14">
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate><StackPanel Orientation="Horizontal" /></ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Button Click="OnShot" Cursor="Hand" Margin="0,0,14,0" FocusVisualStyle="{x:Null}">
+                                        <Button.Template>
+                                            <ControlTemplate TargetType="Button">
+                                                <Border Width="320" Height="180" CornerRadius="18" Background="{DynamicResource Placeholder}">
+                                                    <Border CornerRadius="18">
+                                                        <Border.Background>
+                                                            <ImageBrush Stretch="UniformToFill" core:Img.DecodeWidth="640" core:Img.Urls="{Binding}" />
+                                                        </Border.Background>
+                                                    </Border>
+                                                </Border>
+                                            </ControlTemplate>
+                                        </Button.Template>
+                                    </Button>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </ScrollViewer>
+                </StackPanel>
+
+                <StackPanel Grid.Column="2">
+                    <!-- library card -->
+                    <Border x:Name="LibCard" Style="{StaticResource Glass}" Background="{DynamicResource Ink}" BorderThickness="0" CornerRadius="28"
+                            Padding="24" Margin="0,0,0,18" Visibility="Collapsed">
+                        <StackPanel>
+                            <Grid>
+                                <TextBlock Text="Tempo de jogo" Style="{StaticResource T.Body}" Foreground="{DynamicResource Ink.Text}" Opacity="0.75" />
+                                <Button Style="{StaticResource Btn.Circle.Small}" Content="{x:Static core:Icons.Folder}" HorizontalAlignment="Right"
+                                        Click="OnOpenFolder" ToolTip="Abrir pasta do jogo" />
+                            </Grid>
+                            <TextBlock x:Name="Playtime" Style="{StaticResource T.Big}" Foreground="{DynamicResource Ink.Text}" Margin="0,6,0,0" />
+                            <TextBlock x:Name="LastPlayed" Style="{StaticResource T.Label}" Foreground="{DynamicResource Ink.Text}" Opacity="0.6" />
+                            <Border Height="1" Background="{DynamicResource Ink.Text}" Opacity="0.12" Margin="0,18" />
+                            <TextBlock Text="Executável" Style="{StaticResource T.Label}" Foreground="{DynamicResource Ink.Text}" Opacity="0.6" />
+                            <TextBlock x:Name="ExePath" Foreground="{DynamicResource Ink.Text}" FontSize="12.5" TextTrimming="CharacterEllipsis" Margin="0,4,0,12" />
+                            <StackPanel Orientation="Horizontal">
+                                <Button Style="{StaticResource Btn}" Content="Definir executável" Click="OnPickExe" Height="36" Padding="16,0" FontSize="12.5" />
+                                <Button Style="{StaticResource Btn.Link}" Content="Remover" Foreground="{DynamicResource Danger}" Margin="16,0,0,0"
+                                        VerticalAlignment="Center" Click="OnRemove" />
+                            </StackPanel>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- info card -->
+                    <Border Style="{StaticResource Glass}" CornerRadius="28" Padding="24">
+                        <StackPanel x:Name="Info">
+                            <TextBlock Text="Informações" Style="{StaticResource T.H2}" Margin="0,0,0,14" />
+                        </StackPanel>
+                    </Border>
+
+                    <!-- repacks preview -->
+                    <Border Style="{StaticResource Glass}" CornerRadius="28" Padding="24" Margin="0,18,0,0">
+                        <StackPanel>
+                            <Grid>
+                                <TextBlock Text="Downloads" Style="{StaticResource T.H2}" />
+                                <Button Style="{StaticResource Btn.Circle.Small}" Content="{x:Static core:Icons.ArrowUpRight}" HorizontalAlignment="Right" Click="OnDownloads" />
+                            </Grid>
+                            <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
+                                <TextBlock x:Name="RepackCount" Text="0" Style="{StaticResource T.Big}" />
+                                <TextBlock Text="opções" Style="{StaticResource T.Label}" VerticalAlignment="Bottom" Margin="8,0,0,11" />
+                            </StackPanel>
+                            <WrapPanel x:Name="RepackSources" Margin="0,6,0,0" />
+                        </StackPanel>
+                    </Border>
+
+                    <!-- cheats -->
+                    <Border Style="{StaticResource Glass}" CornerRadius="28" Padding="24" Margin="0,18,0,0">
+                        <StackPanel>
+                            <Grid>
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Style="{StaticResource T.Icon}" Text="{x:Static core:Icons.Cheat}" FontSize="15" Foreground="{DynamicResource Text}" Margin="0,2,10,0" />
+                                    <TextBlock Text="Cheats" Style="{StaticResource T.H2}" />
+                                </StackPanel>
+                                <Button Style="{StaticResource Btn.Circle.Small}" Content="{x:Static core:Icons.ArrowUpRight}" HorizontalAlignment="Right"
+                                        Click="OnAllCheats" ToolTip="Procurar tabelas" />
+                            </Grid>
+                            <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
+                                <TextBlock x:Name="CheatCount" Text="—" Style="{StaticResource T.Big}" />
+                                <TextBlock Text="tabelas sugeridas" Style="{StaticResource T.Label}" VerticalAlignment="Bottom" Margin="8,0,0,11" />
+                            </StackPanel>
+
+                            <Border x:Name="LinkedCheat" CornerRadius="18" Padding="14,12" Margin="0,10,0,0" Background="{DynamicResource Ink}" Visibility="Collapsed">
+                                <StackPanel>
+                                    <TextBlock Text="Tabela vinculada" FontSize="11.5" Foreground="{DynamicResource Ink.Text}" Opacity="0.6" />
+                                    <TextBlock x:Name="LinkedName" FontSize="13.5" Foreground="{DynamicResource Ink.Text}" TextTrimming="CharacterEllipsis" Margin="0,2,0,10" />
+                                    <StackPanel Orientation="Horizontal">
+                                        <Button Style="{StaticResource Btn}" Content="Abrir trainer" Height="34" Padding="14,0" FontSize="12.5" Click="OnOpenLinked" />
+                                        <Button Style="{StaticResource Btn.Link}" Content="Desvincular" Foreground="{DynamicResource Ink.Text}" Opacity="0.7"
+                                                Margin="14,0,0,0" VerticalAlignment="Center" Click="OnUnlink" />
+                                    </StackPanel>
+                                    <CheckBox x:Name="CheatsOnLaunch" Style="{StaticResource Switch}" Content="Abrir cheats ao jogar" Foreground="{DynamicResource Ink.Text}"
+                                              Margin="0,12,0,0" Click="OnCheatsOnLaunch" />
+                                </StackPanel>
+                            </Border>
+
+                            <ItemsControl x:Name="CheatSuggestions" Margin="0,10,0,0">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate DataType="core:CheatTable">
+                                        <Button Click="OnCheat" Cursor="Hand" FocusVisualStyle="{x:Null}" Margin="0,0,0,6">
+                                            <Button.Template>
+                                                <ControlTemplate TargetType="Button">
+                                                    <Border x:Name="bd" CornerRadius="14" Padding="12,9" Background="{DynamicResource Glass.Soft}" BorderBrush="{DynamicResource Line}" BorderThickness="1">
+                                                        <Grid>
+                                                            <Grid.ColumnDefinitions>
+                                                                <ColumnDefinition Width="*" />
+                                                                <ColumnDefinition Width="Auto" />
+                                                            </Grid.ColumnDefinitions>
+                                                            <StackPanel>
+                                                                <TextBlock Text="{Binding Name}" FontSize="13" Foreground="{DynamicResource Text}" TextTrimming="CharacterEllipsis" />
+                                                                <TextBlock Text="{Binding FileName}" FontSize="11" Foreground="{DynamicResource Text.3}" TextTrimming="CharacterEllipsis" />
+                                                            </StackPanel>
+                                                            <TextBlock Grid.Column="1" Style="{StaticResource T.Icon}" Text="{x:Static core:Icons.Chevron}" FontSize="10" Foreground="{DynamicResource Text.3}" Margin="8,0,0,0" />
+                                                        </Grid>
+                                                    </Border>
+                                                    <ControlTemplate.Triggers>
+                                                        <Trigger Property="IsMouseOver" Value="True">
+                                                            <Setter TargetName="bd" Property="Background" Value="{DynamicResource Glass.Hover}" />
+                                                        </Trigger>
+                                                    </ControlTemplate.Triggers>
+                                                </ControlTemplate>
+                                            </Button.Template>
+                                        </Button>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                            <TextBlock x:Name="CheatEmpty" Style="{StaticResource T.Label}" TextWrapping="Wrap" Visibility="Collapsed"
+                                       Text="Nenhuma tabela com esse nome. Use a busca na aba Cheats." />
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+            </Grid>
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

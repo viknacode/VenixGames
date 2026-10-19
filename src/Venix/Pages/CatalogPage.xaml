@@ -1,0 +1,64 @@
+<UserControl x:Class="Venix.Pages.CatalogPage"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:core="clr-namespace:Venix.Core">
+    <ScrollViewer x:Name="Scroller" VerticalScrollBarVisibility="Auto" ScrollChanged="OnScroll">
+        <StackPanel Margin="28,8,28,32">
+
+            <!-- summary + controls -->
+            <Border Style="{StaticResource Glass}" Padding="26,22" CornerRadius="28">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <StackPanel VerticalAlignment="Center">
+                        <TextBlock Text="Resultados" Style="{StaticResource T.Label}" />
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock x:Name="Total" Text="0" Style="{StaticResource T.Big}" />
+                            <TextBlock Text="títulos" Style="{StaticResource T.Label}" FontSize="13" VerticalAlignment="Bottom" Margin="10,0,0,11" />
+                        </StackPanel>
+                    </StackPanel>
+                    <TextBox x:Name="Search" Grid.Column="1" Style="{StaticResource Input}" Margin="40,0,24,0" VerticalAlignment="Center"
+                             MaxWidth="520" Tag="Filtrar por nome…" core:Ui.Icon="{x:Static core:Icons.Search}" TextChanged="OnSearch" />
+                    <StackPanel Grid.Column="2" VerticalAlignment="Center">
+                        <TextBlock Text="Ordenar por" Style="{StaticResource T.Label}" Margin="6,0,0,6" />
+                        <Border Style="{StaticResource Seg.Host}">
+                            <StackPanel Orientation="Horizontal">
+                                <RadioButton Style="{StaticResource Seg}" Content="Recentes" GroupName="sort" Tag="recent" IsChecked="True" Checked="OnSort" />
+                                <RadioButton Style="{StaticResource Seg}" Content="A–Z" GroupName="sort" Tag="az" Checked="OnSort" />
+                                <RadioButton Style="{StaticResource Seg}" Content="Mais opções" GroupName="sort" Tag="options" Checked="OnSort" />
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+                </Grid>
+            </Border>
+
+            <WrapPanel x:Name="SourceChips" Margin="4,18,0,4" />
+
+            <!-- empty state -->
+            <Border x:Name="Empty" Style="{StaticResource Glass}" Margin="8,20,8,0" Padding="40" Visibility="Collapsed" CornerRadius="28">
+                <StackPanel HorizontalAlignment="Center">
+                    <Border Width="64" Height="64" CornerRadius="32" Background="{DynamicResource Glass.Strong}" HorizontalAlignment="Center">
+                        <TextBlock Style="{StaticResource T.Icon}" Text="{x:Static core:Icons.Link}" FontSize="22" Foreground="{DynamicResource Text}" />
+                    </Border>
+                    <TextBlock x:Name="EmptyTitle" Style="{StaticResource T.H2}" HorizontalAlignment="Center" Margin="0,18,0,6" />
+                    <TextBlock x:Name="EmptyText" Style="{StaticResource T.Body}" TextAlignment="Center" MaxWidth="440" />
+                    <Button x:Name="EmptyBtn" Style="{StaticResource Btn.Primary}" Content="Adicionar fonte" HorizontalAlignment="Center" Margin="0,20,0,0" Click="OnAddSource" />
+                </StackPanel>
+            </Border>
+
+            <ItemsControl x:Name="TileList" ItemsPanel="{StaticResource TileGrid}" Margin="0,6,0,0">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate DataType="core:Tile">
+                        <Button Style="{StaticResource Tile}" Click="OnTile" />
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+
+            <Button x:Name="More" Style="{StaticResource Btn}" Content="Carregar mais" HorizontalAlignment="Center" Margin="0,18,0,0"
+                    Click="OnMore" Visibility="Collapsed" />
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

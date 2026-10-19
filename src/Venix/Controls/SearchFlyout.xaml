@@ -1,0 +1,59 @@
+<UserControl x:Class="Venix.Controls.SearchFlyout"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:core="clr-namespace:Venix.Core"
+             Width="464" Focusable="False">
+    <UserControl.Resources>
+        <!-- one clickable line of the panel (history entry, suggestion, "see all"); Tag="sel" = keyboard selection -->
+        <Style x:Key="Row" TargetType="Border">
+            <Setter Property="CornerRadius" Value="12" />
+            <Setter Property="Padding" Value="10,7" />
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="SnapsToDevicePixels" Value="True" />
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="{DynamicResource Glass.Hover}" />
+                </Trigger>
+                <Trigger Property="Tag" Value="sel">
+                    <Setter Property="Background" Value="{DynamicResource Glass.Hover}" />
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+        <Style x:Key="Section" TargetType="TextBlock" BasedOn="{StaticResource T.Label}">
+            <Setter Property="FontSize" Value="11" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Margin" Value="12,8,0,6" />
+        </Style>
+        <!-- text-only action in a section header ("Limpar") -->
+        <Style x:Key="Link" TargetType="Button">
+            <Setter Property="Focusable" Value="False" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="Foreground" Value="{DynamicResource Text.3}" />
+            <Setter Property="FontSize" Value="11" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Padding" Value="8,2" />
+            <Setter Property="Margin" Value="0,8,4,6" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="Transparent" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter />
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Foreground" Value="{DynamicResource Text}" />
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+    </UserControl.Resources>
+
+    <!-- outer margin leaves room for the shadow inside the popup window -->
+    <Border Background="{DynamicResource Flyout.Fill}" BorderBrush="{DynamicResource Glass.Border}" BorderThickness="1"
+            CornerRadius="20" Padding="8" Margin="12,4,12,22" Effect="{StaticResource Shadow.Lift}">
+        <StackPanel x:Name="Body" />
+    </Border>
+</UserControl>

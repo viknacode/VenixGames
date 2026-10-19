@@ -1,0 +1,149 @@
+<UserControl x:Class="Venix.Pages.TrainerPage"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:core="clr-namespace:Venix.Core"
+             xmlns:tr="clr-namespace:Venix.Trainer">
+    <Grid Margin="28,8,28,24">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <!-- ============================================ header -->
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="1.15*" />
+                <ColumnDefinition Width="16" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+
+            <Border Style="{StaticResource Glass}" Background="{DynamicResource Ink}" BorderThickness="0" Padding="24,20">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <StackPanel VerticalAlignment="Center">
+                        <TextBlock Text="Processo do jogo" Style="{StaticResource T.Label}" Foreground="{DynamicResource Ink.Text}" Opacity="0.6" />
+                        <StackPanel Orientation="Horizontal" Margin="0,6,0,0">
+                            <Ellipse x:Name="Dot" Width="10" Height="10" Margin="0,0,10,0" VerticalAlignment="Center" />
+                            <TextBlock x:Name="StateText" Style="{StaticResource T.H2}" Foreground="{DynamicResource Ink.Text}" />
+                        </StackPanel>
+                        <TextBlock x:Name="StatusText" FontSize="12.5" Foreground="{DynamicResource Ink.Text}" Opacity="0.65" Margin="0,6,0,0" TextWrapping="Wrap" />
+                    </StackPanel>
+                    <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                        <Button x:Name="PickBtn" Style="{StaticResource Btn}" Content="Escolher processo" Click="OnPick" Height="38" Padding="16,0" FontSize="12.5" />
+                        <Button x:Name="DetachBtn" Style="{StaticResource Btn}" Content="Desconectar" Click="OnDetach" Height="38" Padding="16,0" FontSize="12.5" Margin="8,0,0,0" />
+                    </StackPanel>
+                </Grid>
+            </Border>
+
+            <Border Grid.Column="2" Style="{StaticResource Glass}" Padding="24,20">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <Border Width="48" Height="48" CornerRadius="16" Background="{DynamicResource Glass.Strong}" VerticalAlignment="Top">
+                        <TextBlock Style="{StaticResource T.Icon}" Text="{x:Static core:Icons.Cheat}" FontSize="18" Foreground="{DynamicResource Text}" />
+                    </Border>
+                    <StackPanel Grid.Column="1" Margin="16,0,0,0">
+                        <TextBlock x:Name="TableInfo" Style="{StaticResource T.H3}" TextTrimming="CharacterEllipsis" />
+                        <WrapPanel x:Name="Counts" Margin="0,8,0,0" />
+                        <StackPanel Orientation="Horizontal" Margin="0,4,0,0">                            <Button Style="{StaticResource Btn.Link}" Content="Fechar trainer" Click="OnCloseSession" />
+                        </StackPanel>
+                    </StackPanel>
+                </Grid>
+            </Border>
+        </Grid>
+
+        <TextBlock Grid.Row="1" x:Name="Notice" Style="{StaticResource T.Label}" Margin="8,18,8,8" TextWrapping="Wrap" />
+
+        <!-- ============================================ entries -->
+        <Border Grid.Row="2" Style="{StaticResource Glass}" Padding="10" CornerRadius="26">
+            <ScrollViewer VerticalScrollBarVisibility="Auto">
+                <ItemsControl x:Name="List" Margin="6,6,12,6" VirtualizingPanel.IsVirtualizing="True">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate DataType="tr:TrainerEntry">
+                            <Border x:Name="row" CornerRadius="16" Padding="12,9" Margin="{Binding Indent}" Background="Transparent">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="26" />
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+
+                                    <Button x:Name="chev" Content="{Binding Chevron}" Click="OnExpand" Cursor="Hand" FocusVisualStyle="{x:Null}"
+                                            Visibility="{Binding HasChildren, Converter={x:Static core:Conv.Visible}}" VerticalAlignment="Center" HorizontalAlignment="Left">
+                                        <Button.Template>
+                                            <ControlTemplate TargetType="Button">
+                                                <Border Background="Transparent" Width="22" Height="22">
+                                                    <TextBlock Style="{StaticResource T.Icon}" Text="{TemplateBinding Content}" FontSize="10" Foreground="{DynamicResource Text.2}" />
+                                                </Border>
+                                            </ControlTemplate>
+                                        </Button.Template>
+                                    </Button>
+
+                                    <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="0,0,16,0">
+                                        <TextBlock x:Name="title" Text="{Binding Description}" FontSize="13.5" Foreground="{DynamicResource Text}" TextWrapping="Wrap" />
+                                        <StackPanel Orientation="Horizontal" Margin="0,2,0,0">
+                                            <TextBlock Text="{Binding TypeLabel}" FontSize="11.5" Foreground="{DynamicResource Text.3}" />
+                                            <TextBlock Text="{Binding StatusText}" FontSize="11.5" Foreground="{DynamicResource Success}" Margin="10,0,0,0" FontWeight="SemiBold" />
+                                        </StackPanel>
+                                        <TextBlock Text="{Binding Error}" FontSize="12" Foreground="{DynamicResource Danger}" TextWrapping="Wrap" Margin="0,4,0,0"
+                                                   Visibility="{Binding HasError, Converter={x:Static core:Conv.Visible}}" />
+                                        <ItemsControl ItemsSource="{Binding Options}" Margin="0,6,0,0" Visibility="{Binding HasDropDown, Converter={x:Static core:Conv.Visible}}">
+                                            <ItemsControl.ItemsPanel>
+                                                <ItemsPanelTemplate><WrapPanel /></ItemsPanelTemplate>
+                                            </ItemsControl.ItemsPanel>
+                                            <ItemsControl.ItemTemplate>
+                                                <DataTemplate>
+                                                    <Button Content="{Binding}" Style="{StaticResource Btn}" Height="28" Padding="12,0" FontSize="12" Margin="0,0,6,6" Click="OnOption" />
+                                                </DataTemplate>
+                                            </ItemsControl.ItemTemplate>
+                                        </ItemsControl>
+                                    </StackPanel>
+
+                                    <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
+                                        <!-- value: live value + edit -->
+                                        <StackPanel Orientation="Horizontal" Visibility="{Binding IsValue, Converter={x:Static core:Conv.Visible}}">
+                                            <TextBlock Text="{Binding Value}" FontFamily="Cascadia Mono, Consolas" FontSize="14" Foreground="{DynamicResource Text}"
+                                                       VerticalAlignment="Center" MinWidth="90" TextAlignment="Right" Margin="0,0,12,0" />
+                                            <TextBox Style="{StaticResource Input}" Width="130" Height="34" Padding="12,0" Tag="novo valor" KeyDown="OnValueKey" Margin="0,0,14,0" />
+                                        </StackPanel>
+                                        <TextBlock Text="Congelar" FontSize="11.5" Foreground="{DynamicResource Text.3}" VerticalAlignment="Center" Margin="0,0,8,0"
+                                                   Visibility="{Binding IsValue, Converter={x:Static core:Conv.Visible}}" />
+                                        <CheckBox Style="{StaticResource Switch}" IsChecked="{Binding IsActive, Mode=OneWay}" Click="OnToggle"
+                                                  Visibility="{Binding CanToggle, Converter={x:Static core:Conv.Visible}}" />
+                                        <Border Style="{StaticResource Chip}" Margin="0" Visibility="{Binding IsUnsupported, Converter={x:Static core:Conv.Visible}}">
+                                            <TextBlock Text="Não suportado" FontSize="11.5" Foreground="{DynamicResource Text.2}" />
+                                        </Border>
+                                    </StackPanel>
+                                </Grid>
+                            </Border>
+                            <DataTemplate.Triggers>
+                                <DataTrigger Binding="{Binding Visible}" Value="False">
+                                    <Setter TargetName="row" Property="Visibility" Value="Collapsed" />
+                                </DataTrigger>
+                                <DataTrigger Binding="{Binding IsGroupOnly}" Value="True">
+                                    <Setter TargetName="title" Property="FontWeight" Value="SemiBold" />
+                                    <Setter TargetName="title" Property="FontSize" Value="14.5" />
+                                </DataTrigger>
+                                <DataTrigger Binding="{Binding IsUnsupported}" Value="True">
+                                    <Setter TargetName="title" Property="Foreground" Value="{DynamicResource Text.3}" />
+                                </DataTrigger>
+                                <DataTrigger Binding="{Binding IsActive}" Value="True">
+                                    <Setter TargetName="row" Property="Background" Value="{DynamicResource Glass.Strong}" />
+                                </DataTrigger>
+                                <Trigger SourceName="row" Property="IsMouseOver" Value="True">
+                                    <Setter TargetName="row" Property="Background" Value="{DynamicResource Glass.Soft}" />
+                                </Trigger>
+                            </DataTemplate.Triggers>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </ScrollViewer>
+        </Border>
+    </Grid>
+</UserControl>
